@@ -18,7 +18,7 @@ export const Showsignup = async(req , res, next)=>{
          let existing = await User.findOne({email});
 
          if(existing){
-            res.status(409).json({
+           return res.status(409).json({
                 message:" User already register",
             });
         }
@@ -32,7 +32,7 @@ export const Showsignup = async(req , res, next)=>{
 
               return res.status(201).json({
               message: "Signup successful",
-                user: registeredUser,
+                user: registerUser,
       });
         });
     
@@ -51,6 +51,23 @@ export const login = async(req,res)=>{
         message : "login successfully",
           user: req.user,
      })
+};
+
+// post api/auth/logout
+
+export const logout = async(req,res,next)=>{
+  req.logout((er)=>{
+    if(er){
+      return next(er)
+    }
+
+     req.session.destroy(() => {
+      res.clearCookie("connect.sid"); 
+      return res.status(200).json({
+        message: "Logout successful",
+      });
+  });
+});
 }
 
 

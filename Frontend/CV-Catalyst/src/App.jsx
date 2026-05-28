@@ -1,13 +1,31 @@
 
 // import './App.css'
-import Check from './check'
-import Home from "./Home.jsx";
+// import Check from './check'
+// import Home from "./Home.jsx";
+
+import { useEffect } from "react";
+import { useState } from "react"
+import axios from "axios";
 
 
 function App() {
+
+  const [message,setMessage]= useState("");
+   useEffect(()=>{
+    axios.get("http://localhost:3000/api/intro")
+    .then((res)=>{
+      setMessage(res.data.message);
+
+    })
+    .catch((error)=>{
+      console.log(error);
+    })
+   },[])
+
   return (
    <>
-     <Home></Home>
+     <h1>Welcome to CV-Catalyst</h1>
+     <h2>data{message}</h2>
    </>
   )
 }
