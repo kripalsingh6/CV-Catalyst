@@ -1,4 +1,26 @@
 import express from 'express';
-const Router = express.Router();
+const router = express.Router();
 import passport from 'passport';
-import {Showsignup, login ,logout} from './Controller/controller.auth.js'
+
+import { signup, login, logout, getme } 
+from '../Controllers/controller.auth.js';
+
+import { savedRedirectUrl, auth } 
+from '../middleware/middleware.auth.js';
+
+router.post("/signup", signup);
+
+router.post(
+  "/login",
+  savedRedirectUrl,
+  passport.authenticate("local", {
+    failureRedirect: "/login",
+    failureFlash: true,
+  }),
+  login
+);
+
+router.post("/logout", logout);
+router.get("/getme", auth, getme);
+
+export default router;

@@ -1,44 +1,37 @@
-import bcrypt from 'bcrypt';
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
+import passportLocalMongoose from "passport-local-mongoose";
 
-const UserSchema = new mongoose.Schema({
-    name:{
-        type: String,
-        required:true,
-        trim: true,
+const UserSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
     },
-    email:{
-        type: String,
-        required: true,
-        trim:true,
-         unique: true,
+    email: {
+      type: String,
+      required: true,
+      unique: true,
       lowercase: true,
+      trim: true,
     },
-    password:{
-        type:String,
-        required:true,
-        minlength:8
-    },
-    subscription:{
-        type:String,
-         enum: ["free", "pro"],
+    subscription: {
+      type: String,
+      enum: ["free", "pro"],
+      default: "free",
     },
     resumeCount: {
       type: Number,
       default: 0,
     },
-},
-{  timestamps:true});
+  },
+  { timestamps: true }
+);
 
-UserSchema.pre("save", async()=>{
-   if(!this.isModified("password"))return;
-   this.password = await bcrypt.hash(this.password, 10);
-})
+// 🔥 FIX HERE
+UserSchema.plugin(passportLocalMongoose.default, {
+  usernameField: "email",
+});
 
-
-UserSchema.methods.comparePassword = async function (userPass) {
-  return await bcrypt.compare(userPass, this.password);
-};
-
-const User = mongoose.model("User",UserSchema);
+const User = mongoose.model("User", UserSchema);
 export default User;

@@ -1,58 +1,60 @@
-import express from 'express';
-import User from './models/user.js'
-const app = express();
+import express from "express";
+import User from "./models/user.js";
+import authroutes from "./routes/route.auth.js";
+import passport from "passport";
+import LocalStrategy from "passport-local";
+import cors from "cors";
+import dotenv from "dotenv";
+import session from "express-session";
 
+dotenv.config(); // 
+
+const app = express();
 const port = process.env.PORT || 3000;
 
-import axios from 'axios';
+// CORS
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173", 
+      "http://localhost:5174"]
+      ,
+    credentials: true,
+  })
+);
 
-import cors from 'cors';
-app.use(cors(
-  {
-    origin:[
-      "http://localhost:5173",
-      "http://localhost:5174"
-    ],
-    credentials:true,
-  }
-));
+// Body parsers
+app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // 
 
-import dotenv from "dotenv";
-dotenv.config();
+// Session
+app.use(
+  session({
+    name: "connect.sid", // optional
+    secret: process.env.SECRET_SESSION,
+    resave: false,
+    saveUninitialized: false, // 
+    cookie: {
+      httpOnly: true,
+      secure: false, // true in production (HTTPS)
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), 
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    },
+  })
+);
 
-import session from 'express-session';
-app.use(session({
-  secret:process.env.SECRET_SESSION,
-  resave: false,
-  saveUninitialized: true,
-  cookie:{
-    httpOnly:true,
-    secure: false,
-    expires:Date.now()+ 7*24*60*60*1000,
-    maxAge:7*24*60*60*1000,
-  }
-}));
-
-import passport from 'passport';
-import LocalStrategy from 'passport-local';
+// Passport
 app.use(passport.initialize());
 app.use(passport.session());
-passport.use(new LocalStrategy(User.authenticate()));
 
+passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
+// Routes
+app.use("/api/auth", authroutes);
 
 
-
-
-
-
-
-
-app.get("/", (req, res) => {
-    res.send("hello")//
-});
 app.get("/api/jokes",async (req,res)=>{
     try {
     const response = await axios.get("https://icanhazdadjoke.com/", {
