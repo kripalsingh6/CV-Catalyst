@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import dotenv from "dotenv";
 
 dotenv.config();
+console.log("DB_URL:", process.env.DB_URL);
 
 mongoose.connect(process.env.DB_URL)
 .then(()=>{
