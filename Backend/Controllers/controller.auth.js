@@ -1,4 +1,5 @@
 import User from '../models/user.js';
+import passport from 'passport';  
 
 // SIGNUP
 export const signup = async (req, res, next) => {
@@ -38,12 +39,16 @@ export const signup = async (req, res, next) => {
 };
 
 // LOGIN
-export const login = (req, res) => {
-  res.status(200).json({
-    message: "Login successful",
-    user: req.user,
-  });
-};
+export const login =(req, res, next) => {                          // ← wrapper gives req, res, next scope
+    passport.authenticate("local", (err, user, info) => {
+      if (err) return next(err);
+      if (!user) return res.status(401).json({ message: info?.message || "Invalid credentials" });
+      req.login(user, (err) => {
+        if (err) return next(err);
+        return res.status(200).json({ message: "Login successful", user });
+      });
+    })(req, res, next);                          // ← invoke with (req, res, next)
+  };
 
 // GET ME
 export const getme = (req, res) => {

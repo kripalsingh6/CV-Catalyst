@@ -13,11 +13,7 @@ router.post("/signup", signup);
 router.post(
   "/login",
   savedRedirectUrl,
-  passport.authenticate("local", {
-    failureRedirect: "/login",
-    failureFlash: true,
-  }),
-  login
+   login
 );
 
 router.post("/logout", logout);
