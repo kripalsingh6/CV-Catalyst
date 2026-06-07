@@ -6,28 +6,34 @@
 import { useEffect } from "react";
 import { useState } from "react"
 import axios from "axios";
+import { LoginPage } from "./pages/loginPage";
 
 
 function App() {
 
-  const [message,setMessage]= useState("");
-   useEffect(()=>{
-    axios.get("http://localhost:3000/api/intro")
-    .then((res)=>{
-      setMessage(res.data.message);
+  // const [message,setMessage]= useState("");
+  //  useEffect(()=>{
+  //   axios.get("http://localhost:3000/api/intro")
+  //   .then((res)=>{
+  //     setMessage(res.data.message);
 
-    })
-    .catch((error)=>{
-      console.log(error);
-    })
-   },[])
+  //   })
+  //   .catch((error)=>{
+  //     console.log(error);
+  //   })
+  //  },[])
 
-  return (
-   <>
-     <h1>Welcome to CV-Catalyst</h1>
-     <h2>data{message}</h2>
-   </>
+  // return (
+  //  <>
+  //    <h1>Welcome to CV-Catalyst</h1>
+  //    <h2>data{message}</h2>
+  //  </>
+  // )
+  return(
+    <LoginPage></LoginPage>
+
   )
+  
 }
 
 export default App
