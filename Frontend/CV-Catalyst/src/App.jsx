@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { useState } from "react"
 import axios from "axios";
 import { LoginPage } from "./pages/loginPage";
+import { Signup } from "./pages/signupPage";
 
 
 function App() {
@@ -30,7 +31,7 @@ function App() {
   //  </>
   // )
   return(
-    <LoginPage></LoginPage>
+    <Signup></Signup>
 
   )
   

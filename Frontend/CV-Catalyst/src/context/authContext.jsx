@@ -15,7 +15,7 @@ export function AuthProvider({ children }) {
 
   const fetchMe = async () => {
     try {
-      const res = await axios.get(`${api}/api/getme`, {
+      const res = await axios.get(`${api}/getme`, {
         withCredentials: true
       });
       setUser(res.data.user); // 

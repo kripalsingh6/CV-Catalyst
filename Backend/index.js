@@ -52,7 +52,9 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 // Routes
-app.use("/api/auth", authroutes);
+// app.use("/api/auth", authroutes);
+app.use("/api", authroutes);
+
 
 
 app.get("/api/jokes",async (req,res)=>{
