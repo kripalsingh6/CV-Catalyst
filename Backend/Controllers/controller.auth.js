@@ -4,6 +4,8 @@ import passport from 'passport';
 // SIGNUP
 export const signup = async (req, res, next) => {
   try {
+    console.log("🔥 SIGNUP HIT");
+console.log("BODY:", req.body); 
     let { name, password, email } = req.body;
 
     if (!name || !email || !password) {
@@ -31,6 +33,7 @@ export const signup = async (req, res, next) => {
     });
 
   } catch (error) {
+     console.log("🔥 REAL SIGNUP ERROR:", error);
     return res.status(500).json({
       message: "Signup failed",
       error: error.message,

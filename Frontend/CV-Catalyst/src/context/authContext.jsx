@@ -15,7 +15,7 @@ export function AuthProvider({ children }) {
 
   const fetchMe = async () => {
     try {
-      const res = await axios.get(`${api}/getme`, {
+      const res = await axios.get(`${api}/api/getme`, {
         withCredentials: true
       });
       setUser(res.data.user); // 
@@ -29,7 +29,7 @@ export function AuthProvider({ children }) {
   const Signup = async ({ name, email, password }) => {
     try {
       const res = await axios.post(
-        `${api}/api/auth/signup`,
+        `${api}/api/signup`,
         { name, email, password },
         { withCredentials: true }
       );
@@ -47,7 +47,7 @@ export function AuthProvider({ children }) {
   const Login = async ({ email, password }) => {
     try {
       const res = await axios.post(
-        `${api}/api/auth/login`,
+        `${api}/api/login`,
         { email, password },
         { withCredentials: true }
       );
@@ -64,7 +64,7 @@ export function AuthProvider({ children }) {
 
   const Logout = async () => {
     await axios.post(
-      `${api}/api/auth/logout`,
+      `${api}/api/logout`,
       {},
       { withCredentials: true }
     );

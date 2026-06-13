@@ -6,6 +6,9 @@ import LocalStrategy from "passport-local";
 import cors from "cors";
 import dotenv from "dotenv";
 import session from "express-session";
+import axios from "axios";
+import { connectDB } from "./config/mongodb.js";
+
 
 dotenv.config(); // 
 
@@ -25,7 +28,7 @@ app.use(
 
 // Body parsers
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // 
+app.use(express.urlencoded({ extended: true })); 
 
 // Session
 app.use(
@@ -47,45 +50,56 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-passport.use(new LocalStrategy(User.authenticate()));
+passport.use(new LocalStrategy(
+   { usernameField: "email" },
+   User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 // Routes
-// app.use("/api/auth", authroutes);
+app.get("/api/home",(req,res)=>{
+  res.send("welcome to home")
+})
 app.use("/api", authroutes);
 
 
 
-app.get("/api/jokes",async (req,res)=>{
-    try {
-    const response = await axios.get("https://icanhazdadjoke.com/", {
-      headers: {
-        Accept: "application/json"
-      }
-    });
 
-    res.json([
-      {
-        id: response.data.id,
-        joke: response.data.joke
-      }
-    ]);
+// app.get("/api/jokes",async (req,res)=>{
+//     try {
+//     const response = await axios.get("https://icanhazdadjoke.com/", {
+//       headers: {
+//         Accept: "application/json"
+//       }
+//     });
 
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch joke" });
-  }
+//     res.json([
+//       {
+//         id: response.data.id,
+//         joke: response.data.joke
+//       }
+//     ]);
+
+//   } catch (error) {
+//     res.status(500).json({ error: "Failed to fetch joke" });
+//   }
     
-})
+// })
 
-app.get("/api/intro",(req,res)=>{
-  res.json({
-    message: "hello my dear friend",
-  })
-})
+// app.get("/api/intro",(req,res)=>{
+//   res.json({
+//     message: "hello my dear friend",
+//   })
+// })
 
 
 
-app.listen(port, () => {
-  console.log(`Server is running on ${port}`);
-})
+const startServer = async () => {
+  await connectDB();   // ✅ VERY IMPORTANT
+
+  app.listen(port, () => {
+    console.log(`🚀 Server running on ${port}`);
+  });
+};
+
+startServer();

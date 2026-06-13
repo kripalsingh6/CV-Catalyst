@@ -2,11 +2,13 @@ import axios from 'axios';
 import { useEffect } from 'react';
 import { useState } from 'react'
 
+const api= "http://localhost:3000";
+
 const Home = ()=>{
   const [jokes, setJokes] = useState([]);
 
   useEffect(()=>{
-    axios.get('/api/jokes')
+    axios.get(`${api}/api/jokes`)
     .then((res)=>{
       setJokes(res.data);
     })

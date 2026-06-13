@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
-import passportLocalMongoose from "passport-local-mongoose";
+import pkg from "passport-local-mongoose";
+
+const passportLocalMongoose = pkg.default || pkg;
 
 const UserSchema = new mongoose.Schema(
   {
@@ -28,10 +30,9 @@ const UserSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// 🔥 FIX HERE
-UserSchema.plugin(passportLocalMongoose.default, {
+// ✅ FIXED (now always a function)
+UserSchema.plugin(passportLocalMongoose, {
   usernameField: "email",
 });
 
-const User = mongoose.model("User", UserSchema);
-export default User;
+export default mongoose.model("User", UserSchema);

@@ -1,11 +1,11 @@
 
 // import './App.css'
 // import Check from './check'
-// import Home from "./Home.jsx";
+// import Home from "./components/home";
 
-import { useEffect } from "react";
-import { useState } from "react"
-import axios from "axios";
+// import { useEffect } from "react";
+// import { useState } from "react"
+// import axios from "axios";
 import { LoginPage } from "./pages/loginPage";
 import { Signup } from "./pages/signupPage";
 
@@ -31,8 +31,8 @@ function App() {
   //  </>
   // )
   return(
-    <Signup></Signup>
-
+  <Signup></Signup>
+   
   )
   
 }
