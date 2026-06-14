@@ -31,8 +31,12 @@ function App() {
   //  </>
   // )
   return(
-  <Signup></Signup>
-   
+
+    <>
+     <Signup></Signup>
+   <LoginPage></LoginPage>
+    </>
+ 
   )
   
 }
