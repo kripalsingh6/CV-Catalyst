@@ -162,6 +162,24 @@ export function PricingPage(){
                         <h1 className="text-3xl md:text-4xl font-bold">Simple, transparent pricing</h1>
                         <p className="text-gray-400 text-sm mt-2">Choose the plan that fits your job search</p>
                     </div>
+
+                    {/*billing toggle */}
+                    <div className="flex justify-center mb-10">
+                        <div className="bg-white/5 border-white/10 rounded-full p-1 flex">
+                        <button
+                        onClick={()=> setBilling("monthly")}
+                        className={`px-5 py-2 rounded-full text-sm font-medium transition-color ${
+                            billing=== "monthly" ? "bg-white text-black" : "text-gray-400 hover:text-white"
+                        }`}
+                        >
+                            monthly
+                            
+
+                        </button>
+
+                        </div>
+
+                    </div>
                 </main>
             </div>
         )
