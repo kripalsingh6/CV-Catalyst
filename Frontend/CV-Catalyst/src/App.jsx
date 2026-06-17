@@ -7,6 +7,7 @@
 // import { useState } from "react"
 // import axios from "axios";
 import { LoginPage } from "./pages/loginPage";
+import { PricingPage } from "./pages/pricePage";
 import { Signup } from "./pages/signupPage";
 
 
@@ -33,8 +34,7 @@ function App() {
   return(
 
     <>
-     <Signup></Signup>
-   <LoginPage></LoginPage>
+     <PricingPage></PricingPage>
     </>
  
   )
