@@ -4,6 +4,7 @@ import {useAuth} from '../context/authContext'
 import toast, {Toaster} from 'react-hot-toast';
 import {Check , X , FileText , Users , Sparkles , Loader2} from 'lucide-react';
 import axios from 'axios';
+import { Footer } from "./footer";
 
 const api = "http://localhost:3000";
 
@@ -126,7 +127,7 @@ export function PricingPage(){
                 {/* <div className="absolute w-[500px] h-[500px] bg-orange-500/10 blur-[120px] rounded-full top-[-100px] right-[-100px]" /> */}
 
                 {/* Header */}
-                <header className="flex items-center justify-between px-6 md:px-10 py-5 border-b border-white/5">
+                <header className="flex items-center justify-between px-6 md:px-10 py-5 border-b border-white/5 ">
                  <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
                         <FileText 
@@ -212,8 +213,8 @@ export function PricingPage(){
                         </div>
                         <p className="text-black text-xs mb-5">Free forever</p>
                       <button
-                         onClick={handleFree}
-                       className="w-full py-2.5 rounded-lg bg-black text-white text-sm font-medium hover:bg-gray-700 hover:scale-[1.02] transition-all duration-200 mb-6 cursor-pointer"
+                         onClick={()=>navigate("/")}
+                       className="w-full py-2.5 rounded-lg bg-black text-white text-sm font-medium hover:bg-black/70 transition mb-6"
                            >
                        {User ? "Current plan" : "Get started"}
                         </button>
@@ -242,14 +243,128 @@ export function PricingPage(){
                             </li>
                             ))}
                          </ul>
-                        </div>
+                     </div>
+                     
 
                         {/*pro - most popular */}
-                        <div>
-                            
+                        <div className="relative bg-white from-red-950/40 to-[#15151c] border-2 border-red-500/60 rounded-2xl p-6">
+                          <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-500 text-white text-[11px] font-semibold px-3 py-1 rounded-full whitespace-nowrap">
+                             Most popular
+                          </div>
+
+                          <div className="flex items-center gap-2 mb-1 mt-2">
+                                        <h3 className="text-lg font-semibold text-red-400">Pro</h3>
+                                        <Sparkles className="h-4 w-4 text-red-400" />
+                          </div>
+                           <p className="text-black text-sm mb-5">For active job seekers</p>
+
+                           <div className="flex items-center gap-2 mb-1">
+                               {billing === "yearly" && (
+                              <span className="text-black line-through text-lg">{PRICING.yearly.strike}</span>
+                                )}
+                             <span className="text-4xl font-bold text-black">{proPlan.label}</span>
+                               <span className="text-black text-sm">{proPlan.sub}</span>
+                           </div>
+
+                             <p className="text-black text-xs mb-5">
+                                {billing === "yearly" ? proPlan.billedNote : "billed monthly"}
+                            </p>
+
+                                 <button
+                                          onClick={handleUpgrade}
+                                          disabled={isProcessing || User?.plan === "pro"}
+                                          className="w-full py-2.5 rounded-lg bg-gradient-to-r from-red-600 to-red-500 text-white text-sm font-medium hover:opacity-90 transition disabled:opacity-50 flex items-center justify-center gap-2 mb-6"
+                                        >
+                                          {isProcessing ? (
+                                            <>
+                                              <Loader2 className="h-4 w-4 animate-spin" />
+                                              Processing...
+                                            </>
+                                          ) : User?.plan === "pro" ? (
+                                            "Current plan"
+                                          ) : (
+                                            "Get Started"
+                                          )}
+                                 </button>
+
+                                  <div className="flex items-center gap-6 text-xs text-black mb-5 pb-5 border-b border-black/10" >
+                                       <div className="flex items-center gap-1.5">
+                                             <FileText className="h-3.5 w-3.5" />
+                                            Unlimted
+
+                                             </div>
+
+                                           <div className="flex items-center gap-1.5">
+                                              <Users className="h-3.5 w-3.5" />
+                                                  1 seat
+                                                </div>
+                                            </div>
+                                 
+                                             <ul className="space-y-3">
+                                               {PRO_FEATURES.map((f) => (
+                                                 <li key={f.label} className="flex items-center gap-2.5 text-sm">
+                                                   <Check className="h-4 w-4 text-red-400 flex-shrink-0" />
+                                                   <span className="text-gray-700">{f.label}</span>
+                                                 </li>
+                                               ))}
+                                             </ul>
                         </div>
+                           
+                           {/*Team */}
+                           <div className="bg-white border border-white/10 rounded-2xl p-6" >
+                               <div className="flex items-center gap-2 mb-1">
+                                   <h3 className="text-lg font-semibold text-gray-800">Team</h3>
+                                    <Sparkles className="h-4 w-4 text-gray-800" />
+                                  </div>
+                                <p className="text-gray-800 text-sm mb-5">For career coaches & agencies</p>
+
+                                <div className="mb-1">
+                                    <span className="text-4xl font-bold text-gray-800">Custom</span>
+
+                                </div>
+                                <p className="text-gray-800 text-xs mb-5">Contact us for pricing</p>
+
+                              <button
+                                   onClick={() => toast("Reach out to sales@cv-catalyst.com")}
+                                    className="w-full py-2.5 rounded-lg bg-black text-white text-sm font-medium hover:bg-black/70 transition mb-6"
+                               >
+                               Contact sales
+                           </button>
+
+                   <div className="flex items-center gap-6 text-xs text-black mb-5 pb-5 border-b border-black/10" >
+                          <div className="flex items-center gap-1.5">
+                              <FileText className="h-3.5 w-3.5" />
+                                            Unlimted
+
+                          </div>
+
+                          <div className="flex items-center gap-1.5">
+                            <Users className="h-3.5 w-3.5" />
+                                            10+ seat
+                          </div>
+                     </div>
+
+                       <ul className="space-y-3">
+                                   {PRO_FEATURES.map((f) => (
+                                     <li key={f.label} className="flex items-center gap-2.5 text-sm">
+                                       <Check className="h-4 w-4 text-gray-800 flex-shrink-0" />
+                                       <span className="text-gray-800">{f.label}</span>
+                                     </li>
+                                   ))}
+                                   <li className="flex items-center gap-2.5 text-sm">
+                                     <Check className="h-4 w-4 text-gray-800 flex-shrink-0" />
+                                     <span className="text-gray-800">Team dashboard & seats</span>
+                                   </li>
+                                   <li className="flex items-center gap-2.5 text-sm">
+                                     <Check className="h-4 w-4 text-gray-800 flex-shrink-0" />
+                                     <span className="text-gray-800">Dedicated account manager</span>
+                                   </li>
+                                 </ul>
+                           </div>
+
                     </div>
                 </main>
+                <Footer></Footer>
             </div>
         )
 
