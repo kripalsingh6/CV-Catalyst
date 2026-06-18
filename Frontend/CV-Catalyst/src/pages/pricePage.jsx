@@ -172,13 +172,82 @@ export function PricingPage(){
                             billing=== "monthly" ? "bg-white text-black" : "text-gray-400 hover:text-white"
                         }`}
                         >
-                            monthly
+                           {billing? "Monthly" : "Yearly"}
                             
 
                         </button>
+                        <button
+                         onClick={() => setBilling("yearly")}
+                           className={`px-5 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${
+                              billing === "yearly" ? "bg-white text-black" : "text-gray-400 hover:text-white"
+                           }`}
+                        >
+                            
+                           {billing? "Yearly" : "monthly"}
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-400 font-semibold">
+                                      -30%
+                                </span>
+
+                        </button>
+                       
 
                         </div>
 
+                    </div>
+                    {/* cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
+                        {/*free */}
+                        <div className="bg-white border border-white/10 rounded-2xl p-6">
+                        <div className="flex items-center gap-2 mb-1">
+                            <h3 className="text-lg font-semibold  text-black">
+                                Free
+                            </h3>
+                            <Sparkles className="h-4 w-4 text-gray-500" />
+                        </div>
+                        <p className="text-black text-sm mb-5">Try it out</p>
+
+                        <div className="mb-1">
+                            <span className="text-4xl font-bold text-black">$0</span>
+                                <span className="text-black text-sm">/mo</span>
+                        </div>
+                        <p className="text-black text-xs mb-5">Free forever</p>
+                      <button
+                         onClick={handleFree}
+                       className="w-full py-2.5 rounded-lg bg-black text-white text-sm font-medium hover:bg-gray-700 hover:scale-[1.02] transition-all duration-200 mb-6 cursor-pointer"
+                           >
+                       {User ? "Current plan" : "Get started"}
+                        </button>
+
+                         <div className="flex items-center gap-6 text-xs text-black mb-5 pb-5 border-b border-black/10" >
+                          <div className="flex items-center gap-1.5">
+                              <FileText className="h-3.5 w-3.5" />
+                                            5 resumes/mo
+
+                          </div>
+
+                          <div className="flex items-center gap-1.5">
+                            <Users className="h-3.5 w-3.5" />
+                                            1 seat
+                          </div>
+                         </div>
+
+                         <ul className="space-y-3">
+                            {FREE_FEATURES.map((f)=> (
+                           <li key={f.label} className="flex items-center gap-2.5 text-sm">
+                                {f.on ? (
+                               <Check className="h-4 w-4 text-gray-800 flex-shrink-0" />                                             ) : (
+                                 <X className="h-4 w-4 text-gray-800 flex-shrink-0" />
+                                  )}
+                                 <span className={f.on ? "text-gray-800" : "text-gray-700"}>{f.label}</span>
+                            </li>
+                            ))}
+                         </ul>
+                        </div>
+
+                        {/*pro - most popular */}
+                        <div>
+                            
+                        </div>
                     </div>
                 </main>
             </div>
