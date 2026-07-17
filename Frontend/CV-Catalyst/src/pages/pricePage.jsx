@@ -27,8 +27,8 @@ const PRO_FEATURES = [
 ]
 
 const PRICING = {
-    monthly : { amount :500, label:"$5" , sub : "/mo"},
-    yearly : {amount :5000, label:"$50" , sub : "/yr" , strike: "$1000", billedNote: "billed yearly . save 50%"},
+    monthly : { amount :500, label:"₹499" , sub : "/mo"},
+    yearly : {amount :5000, label:"₹4999" , sub : "/yr" , strike: "$1000", billedNote: "billed yearly . save 50%"},
 };
 
 export function PricingPage(){
