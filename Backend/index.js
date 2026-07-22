@@ -1,6 +1,7 @@
 import express from "express";
 import User from "./models/user.js";
 import authroutes from "./routes/route.auth.js";
+import authPayment from "./routes/route.payment.js";
 import passport from "passport";
 import LocalStrategy from "passport-local";
 import cors from "cors";
@@ -8,6 +9,10 @@ import dotenv from "dotenv";
 import session from "express-session";
 import axios from "axios";
 import { connectDB } from "./config/mongodb.js";
+import cookieParser from "cookie-parser";
+
+import jdRoutes from "./routes/route.jd.js";
+
 
 
 dotenv.config(); // 
@@ -29,6 +34,8 @@ app.use(
 // Body parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); 
+app.use(cookieParser());
+
 
 // Session
 app.use(
@@ -60,7 +67,9 @@ passport.deserializeUser(User.deserializeUser());
 app.get("/api/home",(req,res)=>{
   res.send("welcome to home")
 })
-app.use("/api", authroutes);
+app.use("/api/auth", authroutes);
+// app.use("/api/payment", authPayment);
+app.use("/api/jd", jdRoutes);
 
 
 
@@ -95,7 +104,7 @@ app.use("/api", authroutes);
 
 
 const startServer = async () => {
-  await connectDB();   // ✅ VERY IMPORTANT
+  await connectDB();  
 
   app.listen(port, () => {
     console.log(`🚀 Server running on ${port}`);

@@ -5,8 +5,8 @@ import passport from 'passport';
 import { signup, login, logout, getme } 
 from '../Controllers/controller.auth.js';
 
-import { savedRedirectUrl, auth } 
-from '../middleware/middleware.auth.js';
+import auth, { savedRedirectUrl } 
+from "../middleware/middleware.auth.js";
 
 router.post("/signup", signup);
 

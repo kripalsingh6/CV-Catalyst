@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const SubscriptionSchema = new mongoose.Schema(
   {
@@ -67,4 +67,5 @@ SubscriptionSchema.index({ stripeCustomerId: 1 });
 SubscriptionSchema.index({ stripeSubscriptionId: 1 });
 SubscriptionSchema.index({ user: 1 });
 
-module.exports = mongoose.model("Subscription", SubscriptionSchema);
+const Subscription = mongoose.model("Subscription", SubscriptionSchema);
+export default Subscription;
