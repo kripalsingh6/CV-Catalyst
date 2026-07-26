@@ -1,4 +1,5 @@
 import { useState } from "react";
+<<<<<<< HEAD
 import {useAuth} from '../context/authContext.jsx';
 import { Alert } from "../components/alert.jsx";
 import {Link,useNavigate} from 'react-router-dom';
@@ -7,6 +8,15 @@ import toast, {Toaster} from 'react-hot-toast';
 import { Eye, EyeOff } from "lucide-react";
 
 export function LoginPage({onSwitch}){
+=======
+import { useAuth } from '../context/authContext.jsx';
+import { Link, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import toast, { Toaster } from 'react-hot-toast';
+import { EyeOff } from "lucide-react";
+
+export function LoginPage(){
+>>>>>>> b0593b4 (some change)
   const {Login} = useAuth();
 
   const navigate = useNavigate();

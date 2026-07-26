@@ -144,7 +144,11 @@ export function Signup() {
           {/* 🔗 Footer */}
           <p className="text-center text-gray-400 text-sm mt-4">
             Already have an account?{" "}
+<<<<<<< HEAD
             <Link to="/api/login" className="text-blue-500 hover:underline">
+=======
+            <Link to="/login" className="text-blue-500 hover:underline">
+>>>>>>> b0593b4 (some change)
               Sign in
             </Link>
           </p>

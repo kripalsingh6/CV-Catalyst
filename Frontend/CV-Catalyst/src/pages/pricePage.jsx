@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import {useAuth} from '../context/authContext'
 import toast, {Toaster} from 'react-hot-toast';
 import {Check , X , FileText , Users , Sparkles , Loader2} from 'lucide-react';
+=======
+import { useState } from "react";
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/authContext';
+import toast, { Toaster } from 'react-hot-toast';
+import { Check, X, FileText, Users, Sparkles, Loader2 } from 'lucide-react';
+>>>>>>> b0593b4 (some change)
 import axios from 'axios';
 import { Footer } from "./footer";
 
@@ -32,7 +40,11 @@ const PRICING = {
 };
 
 export function PricingPage(){
+<<<<<<< HEAD
     const {User} = useAuth();
+=======
+    const {User, fetchMe} = useAuth();
+>>>>>>> b0593b4 (some change)
     const navigate = useNavigate();
     const [billing , setBilling]= useState("monthly");
     const [isProcessing , setISProcessing]= useState(false);
@@ -49,11 +61,14 @@ export function PricingPage(){
              document.body.appendChild(script);
         });
 
+<<<<<<< HEAD
         const handleFree = ()=>{
             if(!User) return navigate("/signup");
             toast.success("You're already on the Free plan");
         };
 
+=======
+>>>>>>> b0593b4 (some change)
         const handleUpgrade = async ()=>{
             if(!User){
                 toast.error("Please sign in to upgrade");
@@ -77,7 +92,12 @@ export function PricingPage(){
 
                   const options = {
                     key: data.key,
+<<<<<<< HEAD
                     amount : data.currency || " INR",
+=======
+                    amount : data.amount,
+                    currency: data.currency || "INR",
+>>>>>>> b0593b4 (some change)
                     name : "CV-Catalyst",
                     description : `Pro plan — ${billing === "monthly" ? "Monthly" : "Yearly"} `,
                     order_id : data.orderId,
@@ -96,17 +116,29 @@ export function PricingPage(){
                                 { withCredentials: true}
                                 
                             );
+<<<<<<< HEAD
                             toast.success("Payment successful! Welcome to Pro");
                             navigate("/dashboard");
 
                         }catch(error){
+=======
+                            await fetchMe();
+                            toast.success("Payment successful! Welcome to Pro");
+                            navigate("/dashboard");
+
+                        }catch{
+>>>>>>> b0593b4 (some change)
                             toast.error("Payment verification failed");
                         }
                     },
                     modal : { ondismiss: ()=> setISProcessing(false)},
                   };
                   const rzp = new window.Razorpay(options);
+<<<<<<< HEAD
                   rzp.on("payment failed ",()=>{
+=======
+                  rzp.on("payment.failed",()=>{
+>>>>>>> b0593b4 (some change)
                     toast.error("Payment failed. Please try again");
                     setISProcessing(false);
                   });

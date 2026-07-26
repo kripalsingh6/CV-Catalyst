@@ -22,7 +22,7 @@ const Home = ()=>{
       <h1> hello kripal</h1>
       <p>
         {
-           jokes.map((joke,index) =>(
+           jokes.map((joke) =>(
           <div key={joke.id}>
             <p>{joke.joke}</p>
 
