@@ -1,16 +1,8 @@
-<<<<<<< HEAD
-import { useState, useEffect } from "react";
-import { useNavigate } from 'react-router-dom';
-import {useAuth} from '../context/authContext'
-import toast, {Toaster} from 'react-hot-toast';
-import {Check , X , FileText , Users , Sparkles , Loader2} from 'lucide-react';
-=======
 import { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
 import toast, { Toaster } from 'react-hot-toast';
 import { Check, X, FileText, Users, Sparkles, Loader2 } from 'lucide-react';
->>>>>>> b0593b4 (some change)
 import axios from 'axios';
 import { Footer } from "./footer";
 
@@ -32,7 +24,7 @@ const PRO_FEATURES = [
       { label: "AI-powered JD keyword matching", on: true },
       { label: "Full AI rewrite agent", on: true },
       { label: "Priority support", on: true },
-]
+];
 
 const PRICING = {
     monthly : { amount :500, label:"₹499" , sub : "/mo"},
@@ -40,11 +32,7 @@ const PRICING = {
 };
 
 export function PricingPage(){
-<<<<<<< HEAD
-    const {User} = useAuth();
-=======
     const {User, fetchMe} = useAuth();
->>>>>>> b0593b4 (some change)
     const navigate = useNavigate();
     const [billing , setBilling]= useState("monthly");
     const [isProcessing , setISProcessing]= useState(false);
@@ -61,14 +49,6 @@ export function PricingPage(){
              document.body.appendChild(script);
         });
 
-<<<<<<< HEAD
-        const handleFree = ()=>{
-            if(!User) return navigate("/signup");
-            toast.success("You're already on the Free plan");
-        };
-
-=======
->>>>>>> b0593b4 (some change)
         const handleUpgrade = async ()=>{
             if(!User){
                 toast.error("Please sign in to upgrade");
@@ -92,12 +72,8 @@ export function PricingPage(){
 
                   const options = {
                     key: data.key,
-<<<<<<< HEAD
-                    amount : data.currency || " INR",
-=======
                     amount : data.amount,
                     currency: data.currency || "INR",
->>>>>>> b0593b4 (some change)
                     name : "CV-Catalyst",
                     description : `Pro plan — ${billing === "monthly" ? "Monthly" : "Yearly"} `,
                     order_id : data.orderId,
@@ -116,29 +92,18 @@ export function PricingPage(){
                                 { withCredentials: true}
                                 
                             );
-<<<<<<< HEAD
-                            toast.success("Payment successful! Welcome to Pro");
-                            navigate("/dashboard");
-
-                        }catch(error){
-=======
                             await fetchMe();
                             toast.success("Payment successful! Welcome to Pro");
                             navigate("/dashboard");
 
                         }catch{
->>>>>>> b0593b4 (some change)
                             toast.error("Payment verification failed");
                         }
                     },
                     modal : { ondismiss: ()=> setISProcessing(false)},
                   };
                   const rzp = new window.Razorpay(options);
-<<<<<<< HEAD
-                  rzp.on("payment failed ",()=>{
-=======
                   rzp.on("payment.failed",()=>{
->>>>>>> b0593b4 (some change)
                     toast.error("Payment failed. Please try again");
                     setISProcessing(false);
                   });
@@ -156,14 +121,12 @@ export function PricingPage(){
                 <Toaster position="top-right"></Toaster>
                   <div className="absolute w-[700px] h-[700px] bg-blue-600/20 blur-[140px] rounded-full bottom-[-100px] left-[-100px]" />
 
-                {/* <div className="absolute w-[500px] h-[500px] bg-orange-500/10 blur-[120px] rounded-full top-[-100px] right-[-100px]" /> */}
-
                 {/* Header */}
                 <header className="flex items-center justify-between px-6 md:px-10 py-5 border-b border-white/5 ">
                  <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
                         <FileText 
-                        onClick={()=>navigate("/dashbord")}
+                        onClick={()=>navigate("/dashboard")}
                         className="h-4 w-4 text-white cursor-pointer"></FileText>
                     </div>
                     <span 
@@ -175,7 +138,7 @@ export function PricingPage(){
                       <a href="#" className="hover:text-white transition-colors">FAQ</a>
                   </nav>
 
-                  <div className="flex item-center gap-4">
+                  <div className="flex items-center gap-4">
                     <button 
                     onClick={()=>navigate("/login")}
                     className="text-sm text-gray-300 hover:text-white transition-colors cursor-pointer">
@@ -269,9 +232,9 @@ export function PricingPage(){
                            <li key={f.label} className="flex items-center gap-2.5 text-sm">
                                 {f.on ? (
                                <Check className="h-4 w-4 text-gray-800 flex-shrink-0" />                                             ) : (
-                                 <X className="h-4 w-4 text-gray-800 flex-shrink-0" />
-                                  )}
-                                 <span className={f.on ? "text-gray-800" : "text-gray-700"}>{f.label}</span>
+                                  <X className="h-4 w-4 text-gray-800 flex-shrink-0" />
+                                   )}
+                                  <span className={f.on ? "text-gray-800" : "text-gray-700"}>{f.label}</span>
                             </li>
                             ))}
                          </ul>
@@ -302,36 +265,36 @@ export function PricingPage(){
                                 {billing === "yearly" ? proPlan.billedNote : "billed monthly"}
                             </p>
 
-                                 <button
-                                          onClick={handleUpgrade}
-                                          disabled={isProcessing || User?.plan === "pro"}
-                                          className="w-full py-2.5 rounded-lg bg-gradient-to-r from-red-600 to-red-500 text-white text-sm font-medium hover:opacity-90 transition disabled:opacity-50 flex items-center justify-center gap-2 mb-6"
-                                        >
-                                          {isProcessing ? (
-                                            <>
-                                              <Loader2 className="h-4 w-4 animate-spin" />
-                                              Processing...
-                                            </>
-                                          ) : User?.plan === "pro" ? (
-                                            "Current plan"
-                                          ) : (
-                                            "Get Started"
-                                          )}
-                                 </button>
+                                  <button
+                                           onClick={handleUpgrade}
+                                           disabled={isProcessing || User?.plan === "pro"}
+                                           className="w-full py-2.5 rounded-lg bg-gradient-to-r from-red-600 to-red-500 text-white text-sm font-medium hover:opacity-90 transition disabled:opacity-50 flex items-center justify-center gap-2 mb-6"
+                                         >
+                                           {isProcessing ? (
+                                             <>
+                                               <Loader2 className="h-4 w-4 animate-spin" />
+                                               Processing...
+                                             </>
+                                           ) : User?.plan === "pro" ? (
+                                             "Current plan"
+                                           ) : (
+                                             "Get Started"
+                                           )}
+                                  </button>
 
-                                  <div className="flex items-center gap-6 text-xs text-black mb-5 pb-5 border-b border-black/10" >
+                                   <div className="flex items-center gap-6 text-xs text-black mb-5 pb-5 border-b border-black/10" >
                                        <div className="flex items-center gap-1.5">
                                              <FileText className="h-3.5 w-3.5" />
                                             Unlimted
 
-                                             </div>
+                                              </div>
 
                                            <div className="flex items-center gap-1.5">
                                               <Users className="h-3.5 w-3.5" />
                                                   1 seat
                                                 </div>
-                                            </div>
-                                 
+                                             </div>
+                                  
                                              <ul className="space-y-3">
                                                {PRO_FEATURES.map((f) => (
                                                  <li key={f.label} className="flex items-center gap-2.5 text-sm">
@@ -360,7 +323,7 @@ export function PricingPage(){
                                    onClick={() => toast("Reach out to sales@cv-catalyst.com")}
                                     className="w-full py-2.5 rounded-lg bg-black text-white text-sm font-medium hover:bg-black/70 transition mb-6"
                                >
-                               Contact sales
+                                Contact sales
                            </button>
 
                    <div className="flex items-center gap-6 text-xs text-black mb-5 pb-5 border-b border-black/10" >
@@ -374,7 +337,7 @@ export function PricingPage(){
                             <Users className="h-3.5 w-3.5" />
                                             10+ seat
                           </div>
-                     </div>
+                      </div>
 
                        <ul className="space-y-3">
                                    {PRO_FEATURES.map((f) => (
@@ -392,7 +355,7 @@ export function PricingPage(){
                                      <span className="text-gray-800">Dedicated account manager</span>
                                    </li>
                                  </ul>
-                           </div>
+                            </div>
 
                     </div>
                 </main>

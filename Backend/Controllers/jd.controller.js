@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import Resume from "../models/Resume.js";
-=======
 import Resume from "../models/resume.js";
->>>>>>> b0593b4 (some change)
 import { analyzeJobDescription } from "../services/gemini.service.js";
 
 // POST /api/jd/:resumeId/analyze

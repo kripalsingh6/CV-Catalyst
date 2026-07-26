@@ -2,20 +2,6 @@ import Razorpay from "razorpay";
 import crypto from "crypto";
 import Subscription from "../models/subscription.js";
 import User from "../models/user.js";
-<<<<<<< HEAD
-
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
-
-const PLAN_AMOUNTS = {
-  monthly: 49900,   // ₹499
-  yearly: 419900,   // ₹4,199
-};
-
-// CREATE ORDER
-=======
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -40,18 +26,10 @@ const PLAN_AMOUNTS = {
 // ─────────────────────────────────────────────
 // 1. CREATE ORDER
 // ─────────────────────────────────────────────
->>>>>>> b0593b4 (some change)
 export const createOrder = async (req, res) => {
   try {
     const { billingCycle } = req.body;
 
-<<<<<<< HEAD
-    if (!PLAN_AMOUNTS[billingCycle]) {
-      return res.status(400).json({ message: "Invalid billing cycle" });
-    }
-
-    const amount = PLAN_AMOUNTS[billingCycle];
-=======
     if (!billingCycle || !PLAN_AMOUNTS[billingCycle]) {
       return res.status(400).json({
         success: false,
@@ -61,7 +39,6 @@ export const createOrder = async (req, res) => {
 
     const amount = PLAN_AMOUNTS[billingCycle];
     const razorpay = getRazorpayInstance();
->>>>>>> b0593b4 (some change)
 
     const order = await razorpay.orders.create({
       amount,
@@ -74,52 +51,30 @@ export const createOrder = async (req, res) => {
     });
 
     return res.status(200).json({
-<<<<<<< HEAD
-=======
       success: true,
->>>>>>> b0593b4 (some change)
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,
       key: process.env.RAZORPAY_KEY_ID,
     });
   } catch (error) {
-<<<<<<< HEAD
-    return res.status(500).json({
-      message: "Failed to create order",
-=======
     console.error("❌ Razorpay Create Order Error:", error.message);
     return res.status(500).json({
       success: false,
       message: "Failed to create payment order",
->>>>>>> b0593b4 (some change)
       error: error.message,
     });
   }
 };
 
-<<<<<<< HEAD
 // payment verify
 
-=======
-// ─────────────────────────────────────────────
-// 2. VERIFY PAYMENT
-// ─────────────────────────────────────────────
->>>>>>> b0593b4 (some change)
 export const verifyPayment = async (req, res) => {
   try {
     const {
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
-<<<<<<< HEAD
-      billingCycle,
-    } = req.body;
-
-    // Verify signature
-    const generatedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-=======
       billingCycle = "monthly",
     } = req.body;
 
@@ -141,17 +96,10 @@ export const verifyPayment = async (req, res) => {
     // Verify HMAC SHA256 signature
     const generatedSignature = crypto
       .createHmac("sha256", key_secret)
->>>>>>> b0593b4 (some change)
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest("hex");
 
     if (generatedSignature !== razorpay_signature) {
-<<<<<<< HEAD
-      return res.status(400).json({ message: "Invalid payment signature" });
-    }
-
-    // Fetch payment details for record-keeping
-=======
       return res.status(400).json({
         success: false,
         message: "Invalid payment signature. Payment verification failed.",
@@ -160,22 +108,10 @@ export const verifyPayment = async (req, res) => {
 
     // Fetch payment details from Razorpay for audit
     const razorpay = getRazorpayInstance();
->>>>>>> b0593b4 (some change)
     const payment = await razorpay.payments.fetch(razorpay_payment_id);
 
     const now = new Date();
     const periodEnd = new Date(now);
-<<<<<<< HEAD
-    if (billingCycle === "monthly") periodEnd.setMonth(periodEnd.getMonth() + 1);
-    else periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-
-    // Upsert subscription record
-    await Subscription.findOneAndUpdate(
-      { user: req.user._id },
-      {
-        user: req.user._id,
-        stripeCustomerId: req.user._id.toString(), // placeholder if not using Stripe
-=======
     if (billingCycle === "monthly") {
       periodEnd.setMonth(periodEnd.getMonth() + 1);
     } else {
@@ -188,7 +124,6 @@ export const verifyPayment = async (req, res) => {
       {
         user: req.user._id,
         stripeCustomerId: req.user._id.toString(),
->>>>>>> b0593b4 (some change)
         stripeSubscriptionId: razorpay_order_id,
         plan: "pro",
         status: "active",
@@ -199,11 +134,7 @@ export const verifyPayment = async (req, res) => {
           payments: {
             stripePaymentIntentId: razorpay_payment_id,
             amount: payment.amount,
-<<<<<<< HEAD
-            currency: payment.currency,
-=======
             currency: payment.currency || "INR",
->>>>>>> b0593b4 (some change)
             status: "succeeded",
             paidAt: now,
           },
@@ -212,19 +143,6 @@ export const verifyPayment = async (req, res) => {
       { upsert: true, new: true }
     );
 
-<<<<<<< HEAD
-    // Upgrade user's plan
-        await User.findByIdAndUpdate(req.user._id, { subscription: "pro" });
-    
-        return res.status(200).json({ message: "Payment verified successfully" });
-      } catch (error) {
-        return res.status(500).json({
-          message: "Payment verification failed",
-          error: error.message,
-        });
-      }
-    }
-=======
     // Upgrade User subscription field to 'pro'
     await User.findByIdAndUpdate(req.user._id, { subscription: "pro" });
 
@@ -303,4 +221,3 @@ export const handleWebhook = async (req, res) => {
     return res.status(500).json({ message: "Webhook handler failed", error: error.message });
   }
 };
->>>>>>> b0593b4 (some change)

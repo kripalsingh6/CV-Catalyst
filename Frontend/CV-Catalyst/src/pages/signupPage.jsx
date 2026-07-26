@@ -27,7 +27,7 @@ export function Signup() {
       await Signup(data);
 
       toast.success("Account created successfully");
-      navigate("/dashboard"); // ✅ fixed typo
+      navigate("/dashboard");
     } catch (error) {
       setErrorMsg(error.message);
       toast.error(error.message);
@@ -39,16 +39,16 @@ export function Signup() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-black relative overflow-hidden">
       
-      {/* 🔵 Background Blur */}
+      {/* Background Blur */}
       <div className="absolute w-[700px] h-[700px] bg-blue-600/20 blur-[140px] rounded-full bottom-[-100px] left-[-100px]" />
 
-      {/* 🧊 Card */}
+      {/* Card */}
       <div className="w-full max-w-md bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl p-8">
         
-        {/* 🔔 Toast */}
+        {/* Toast */}
         <Toaster position="top-center" />
 
-        {/* 🏷️ Header */}
+        {/* Header */}
         <div className="text-center mb-8">
           <div className="mb-4 flex justify-center">
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg">
@@ -62,17 +62,17 @@ export function Signup() {
           </p>
         </div>
 
-        {/* ❌ Error */}
+        {/* Error */}
         {errorMsg && (
           <p className="text-red-400 text-sm mb-4 text-center">
             {errorMsg}
           </p>
         )}
 
-        {/* 📄 Form */}
+        {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
 
-          {/* 👤 Name */}
+          {/* Name */}
           <div>
             <input
               type="text"
@@ -87,7 +87,7 @@ export function Signup() {
             )}
           </div>
 
-          {/* 📧 Email */}
+          {/* Email */}
           <div>
             <input
               type="email"
@@ -102,7 +102,7 @@ export function Signup() {
             )}
           </div>
 
-          {/* 🔒 Password */}
+          {/* Password */}
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
@@ -132,7 +132,7 @@ export function Signup() {
             )}
           </div>
 
-          {/* 🔘 Button */}
+          {/* Button */}
           <button
             type="submit"
             disabled={isSubmit}
@@ -141,14 +141,10 @@ export function Signup() {
             {isSubmit ? "Creating..." : "Sign Up"}
           </button>
 
-          {/* 🔗 Footer */}
+          {/* Footer */}
           <p className="text-center text-gray-400 text-sm mt-4">
             Already have an account?{" "}
-<<<<<<< HEAD
-            <Link to="/api/login" className="text-blue-500 hover:underline">
-=======
             <Link to="/login" className="text-blue-500 hover:underline">
->>>>>>> b0593b4 (some change)
               Sign in
             </Link>
           </p>
