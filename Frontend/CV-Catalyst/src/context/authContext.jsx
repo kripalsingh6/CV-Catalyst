@@ -88,18 +88,25 @@ export function AuthProvider({ children }) {
   };
 
   const Logout = async () => {
-    await axios.post(
-      `${api}/api/auth/logout`,
-      {},
-      { withCredentials: true }
-    );
-
-    setUser(null);
+    try {
+      await axios.post(
+        `${api}/api/auth/logout`,
+        {},
+        { withCredentials: true }
+      );
+    } catch (err) {
+      console.warn("Logout request notice:", err.message);
+    } finally {
+      setUser(null);
+    }
   };
+
+  const isAuthenticated = Boolean(User);
+  const isLoading = Loading;
 
   return (
     <AuthContext.Provider
-      value={{ User, Loading, fetchMe, Signup, Login, Logout }}
+      value={{ User, user: User, Loading, isLoading, isAuthenticated, fetchMe, Signup, Login, Logout }}
     >
       {children}
     </AuthContext.Provider>

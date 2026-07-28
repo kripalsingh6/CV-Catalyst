@@ -10,14 +10,14 @@ export const savedRedirectUrl = (req, res, next) => {
 
 const auth = (req, res, next) => {
   try {
-    if (!req.isAuthenticated || !req.isAuthenticated()) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized: Please login",
-      });
+    if ((req.isAuthenticated && req.isAuthenticated()) || req.user) {
+      return next();
     }
 
-    next();
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized: Please login",
+    });
   } catch (err) {
     return res.status(500).json({
       success: false,

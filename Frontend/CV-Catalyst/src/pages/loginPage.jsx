@@ -32,23 +32,24 @@ export function LoginPage(){
     }
   }
   return (
-  <div className="min-h-screen flex items-center justify-center bg-black relative overflow-hidden">
-    
-    <Toaster position="top-right" />
-
-    {/* Background blur */}
-    <div className="absolute w-[700px] h-[700px] bg-blue-600/20 blur-[140px] rounded-full bottom-[-100px] left-[-100px]" />
-
-    {/* Card */}
-    <div className="w-full max-w-md bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl p-8 z-10">
+    <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f] text-white relative overflow-hidden">
       
-      {/* Header */}
-      <div className="text-center mb-8">
-        <div className="mb-4 flex justify-center">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-xl">CV</span>
+      <Toaster position="top-right" />
+
+      {/* Ambient background glow */}
+      <div className="absolute w-[700px] h-[700px] bg-red-600/10 blur-[160px] rounded-full top-[-100px] left-[-100px] pointer-events-none" />
+      <div className="absolute w-[600px] h-[600px] bg-orange-600/10 blur-[160px] rounded-full bottom-[-100px] right-[-100px] pointer-events-none" />
+
+      {/* Card */}
+      <div className="w-full max-w-md bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl p-8 z-10">
+        
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="mb-4 flex justify-center">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-lg shadow-red-500/20">
+              <span className="text-white font-bold text-xl">CV</span>
+            </div>
           </div>
-        </div>
 
         <h1 className="text-3xl font-semibold text-white">Sign in</h1>
         <p className="text-gray-400 text-sm mt-2">

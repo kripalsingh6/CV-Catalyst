@@ -74,13 +74,24 @@ export const getme = (req, res) => {
 // LOGOUT
 export const logout = (req, res, next) => {
   req.logout((err) => {
-    if (err) return next(err);
+    if (err) console.warn("Passport logout warning:", err);
 
-    req.session.destroy(() => {
+    if (req.session) {
+      req.session.destroy(() => {
+        res.clearCookie("cvcatalyst.sid");
+        res.clearCookie("connect.sid");
+        return res.status(200).json({
+          success: true,
+          message: "Logout successful",
+        });
+      });
+    } else {
+      res.clearCookie("cvcatalyst.sid");
       res.clearCookie("connect.sid");
       return res.status(200).json({
+        success: true,
         message: "Logout successful",
       });
-    });
+    }
   });
 };
