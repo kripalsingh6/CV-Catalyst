@@ -1,18 +1,124 @@
+import fs from "fs";
+import { PDFParse } from "pdf-parse";
+import mammoth from "mammoth";
 import Resume from "../models/resume.js";
 import User from "../models/user.js";
-import { rewriteResume, calculateATSScore } from "../services/gemini.service.js";
+import {
+  rewriteResume,
+  calculateATSScore,
+  analyzeJobDescription,
+  extractTextFromImageOrPDF,
+} from "../services/gemini.service.js";
 
-// CREATE NEW RESUME
+// EXTRACT TEXT FROM UPLOADED FILE (PDF, IMAGE, WORD)
+export const extractFileTextController = async (req, res) => {
+  let filePath = null;
+  try {
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
+
+    filePath = file.path;
+    const fileBuffer = fs.readFileSync(filePath);
+    const mimeType = file.mimetype || "";
+    const fileName = file.originalname || "Uploaded Resume";
+    const ext = fileName.toLowerCase();
+
+    let extractedText = "";
+
+    if (mimeType.includes("pdf") || ext.endsWith(".pdf")) {
+      try {
+        const uint8Array = new Uint8Array(fileBuffer);
+        const parser = new PDFParse(uint8Array);
+        await parser.load();
+        const parsed = await parser.getText();
+        extractedText = typeof parsed === "string" ? parsed : parsed?.text || "";
+      } catch (pdfErr) {
+        console.warn("⚠️ PDFParse failed, falling back to Gemini OCR:", pdfErr.message);
+      }
+
+      // If PDF text extraction is empty or too short, use Gemini OCR Vision
+      if (!extractedText || extractedText.trim().length < 20) {
+        extractedText = await extractTextFromImageOrPDF(fileBuffer, "application/pdf");
+      }
+    } else if (
+      mimeType.includes("word") ||
+      mimeType.includes("officedocument") ||
+      ext.endsWith(".docx") ||
+      ext.endsWith(".doc")
+    ) {
+      const result = await mammoth.extractRawText({ buffer: fileBuffer });
+      extractedText = result.value || "";
+    } else if (
+      mimeType.startsWith("image/") ||
+      ext.endsWith(".png") ||
+      ext.endsWith(".jpg") ||
+      ext.endsWith(".jpeg") ||
+      ext.endsWith(".webp")
+    ) {
+      extractedText = await extractTextFromImageOrPDF(fileBuffer, mimeType || "image/png");
+    } else {
+      extractedText = fileBuffer.toString("utf-8");
+    }
+
+    // Clean up temporary file
+    if (filePath && fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Text extracted successfully",
+      text: extractedText.trim(),
+      fileName: fileName,
+    });
+  } catch (error) {
+    if (filePath && fs.existsSync(filePath)) {
+      try {
+        fs.unlinkSync(filePath);
+      } catch {}
+    }
+    console.error("Error in extractFileTextController:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to extract text from file",
+      error: error.message,
+    });
+  }
+};
+
+// CREATE NEW RESUME (WITH AUTOMATIC OPTIMIZATION & REWRITE GENERATION)
 export const createResume = async (req, res) => {
   try {
-    const { title = "Untitled Resume", rawText = "" } = req.body;
+    const { title = "Untitled Resume", rawText = "", template = "classic", jobDescription = "" } = req.body;
 
     const resume = new Resume({
       userId: req.user._id,
       title,
       rawText,
+      template,
+      jobDescription,
       status: "draft",
     });
+
+    let jdAnalysis = {};
+    if (jobDescription && jobDescription.trim().length > 10) {
+      jdAnalysis = await analyzeJobDescription(jobDescription);
+      resume.jdAnalysis = jdAnalysis;
+    }
+
+    // Always optimize and generate structured resume data if text content or JD is provided
+    const textToProcess = rawText && rawText.trim().length > 5 ? rawText : jobDescription;
+    if (textToProcess && textToProcess.trim().length > 5) {
+      const rewrittenData = await rewriteResume(textToProcess, jdAnalysis);
+      const rewrittenString = JSON.stringify(rewrittenData);
+      const atsScore = calculateATSScore(rewrittenString, jdAnalysis);
+
+      resume.rewrittenData = rewrittenData;
+      resume.atsScore = atsScore;
+      resume.status = "rewritten";
+    }
 
     await resume.save();
 
@@ -21,7 +127,9 @@ export const createResume = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: "Resume created successfully",
+      message: resume.status === "rewritten"
+        ? "Resume created, AI optimized, and generated successfully!"
+        : "Resume created successfully",
       resume,
     });
   } catch (error) {
@@ -116,6 +224,40 @@ export const rewriteResumeController = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to rewrite resume",
+      error: error.message,
+    });
+  }
+};
+
+// EXPORT RESUME AS PDF VIA PUPPETEER
+export const exportPDFController = async (req, res) => {
+  try {
+    const { template } = req.body || {};
+    const selectedTemplate = template || req.query.template;
+    const resumeId = req.params.id;
+
+    const resume = await Resume.findOne({ _id: resumeId, userId: req.user._id });
+    if (!resume) {
+      return res.status(404).json({ success: false, message: "Resume not found" });
+    }
+
+    const data = resume.rewrittenData || { name: req.user?.name || "Applicant Name", rawText: resume.rawText };
+
+    const { generatePDF } = await import("../services/puppeteer.service.js");
+    const pdfBuffer = await generatePDF(data, selectedTemplate || resume.template || "classic");
+
+    res.set({
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="${(data.name || "resume").replace(/\s+/g, "_")}_CV.pdf"`,
+      "Content-Length": pdfBuffer.length,
+    });
+
+    return res.end(pdfBuffer);
+  } catch (error) {
+    console.error("❌ Export PDF error:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to export PDF",
       error: error.message,
     });
   }

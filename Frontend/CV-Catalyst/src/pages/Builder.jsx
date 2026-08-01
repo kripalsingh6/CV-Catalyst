@@ -79,8 +79,27 @@ export function BuilderPage() {
     toast.success(`Selected ${template} template`);
   };
 
-  const handleExportPDF = () => {
-    window.print();
+  const handleExportPDF = async () => {
+    try {
+      toast.loading(`Generating ${selectedTemplate.toUpperCase()} single-page PDF...`, { id: "pdf-toast" });
+      const response = await axios.post(
+        `${API_BASE}/api/resume/${id}/export-pdf?template=${selectedTemplate}`,
+        { template: selectedTemplate },
+        { responseType: "blob", withCredentials: true }
+      );
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `${(resume.title || "Resume").replace(/\s+/g, "_")}_${selectedTemplate}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success("Single-page PDF downloaded successfully!", { id: "pdf-toast" });
+    } catch (err) {
+      console.error("PDF Export error:", err);
+      toast.error("Puppeteer PDF generation failed. Printing current layout...", { id: "pdf-toast" });
+      window.print();
+    }
   };
 
   if (isLoading) {
@@ -135,15 +154,13 @@ export function BuilderPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {hasRewrittenData && (
-              <button
-                onClick={handleExportPDF}
-                className="px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white text-xs font-semibold rounded-xl flex items-center gap-2 transition cursor-pointer"
-              >
-                <Download className="w-4 h-4 text-gray-400" />
-                Export PDF / Print
-              </button>
-            )}
+            <button
+              onClick={handleExportPDF}
+              className="px-4 py-2.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white text-xs font-semibold rounded-xl flex items-center gap-2 transition cursor-pointer shadow-sm"
+            >
+              <Download className="w-4 h-4 text-gray-300" />
+              Export PDF / Print
+            </button>
 
             <button
               onClick={handleRewrite}
@@ -207,67 +224,59 @@ export function BuilderPage() {
 
           {/* Right Column: Results & Preview */}
           <div className="lg:col-span-6 space-y-6">
-            {hasRewrittenData ? (
-              <div className="space-y-6">
+            <div className="space-y-6">
 
-                {/* Score & Template Bar */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                  
-                  {/* ATS Score Ring */}
-                  <div className="sm:col-span-1">
-                    <ATSScoreRing score={resume.atsScore || 0} />
-                  </div>
+              {/* Score & Template Bar */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                
+                {/* ATS Score Ring */}
+                <div className="sm:col-span-1">
+                  <ATSScoreRing score={resume.atsScore || 0} />
+                </div>
 
-                  {/* Template Selection */}
-                  <div className="sm:col-span-2 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-2xl flex flex-col justify-between">
-                    <div>
-                      <h3 className="text-gray-300 font-semibold uppercase tracking-wider text-xs mb-3 flex items-center gap-1.5">
-                        <Layout className="w-4 h-4 text-red-400" />
-                        Select Template
-                      </h3>
-                      <div className="grid grid-cols-3 gap-2">
-                        {["classic", "modern", "minimal"].map((tpl) => (
-                          <button
-                            key={tpl}
-                            onClick={() => handleTemplateChange(tpl)}
-                            className={`py-2.5 px-2 rounded-xl text-xs font-semibold border transition-all flex flex-col items-center gap-1 cursor-pointer ${
-                              selectedTemplate === tpl
-                                ? "border-red-500 bg-red-500/10 text-white"
-                                : "border-white/10 bg-black/40 text-gray-400 hover:border-white/20"
-                            }`}
-                          >
-                            <span className="capitalize">{tpl}</span>
-                            {tpl !== "classic" && User?.subscription !== "pro" && (
-                              <span className="text-[9px] uppercase bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded border border-red-500/20">
-                                Pro
-                              </span>
-                            )}
-                          </button>
-                        ))}
-                      </div>
+                {/* Template Selection */}
+                <div className="sm:col-span-2 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-2xl flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-gray-300 font-semibold uppercase tracking-wider text-xs mb-3 flex items-center gap-1.5">
+                      <Layout className="w-4 h-4 text-red-400" />
+                      Select Template
+                    </h3>
+                    <div className="grid grid-cols-3 gap-2">
+                      {["classic", "modern", "minimal"].map((tpl) => (
+                        <button
+                          key={tpl}
+                          onClick={() => handleTemplateChange(tpl)}
+                          className={`py-2.5 px-2 rounded-xl text-xs font-semibold border transition-all flex flex-col items-center gap-1 cursor-pointer ${
+                            selectedTemplate === tpl
+                              ? "border-red-500 bg-red-500/10 text-white"
+                              : "border-white/10 bg-black/40 text-gray-400 hover:border-white/20"
+                          }`}
+                        >
+                          <span className="capitalize">{tpl}</span>
+                          {tpl !== "classic" && User?.subscription !== "pro" && (
+                            <span className="text-[9px] uppercase bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded border border-red-500/20">
+                              Pro
+                            </span>
+                          )}
+                        </button>
+                      ))}
                     </div>
-                    <p className="text-[11px] text-gray-500 mt-4 text-center">
-                      Pro templates require a PRO membership.
-                    </p>
                   </div>
-
+                  <p className="text-[11px] text-gray-500 mt-4 text-center">
+                    Pro templates require a PRO membership.
+                  </p>
                 </div>
 
-                {/* Resume Editor Preview */}
-                <ResumeEditor data={resume.rewrittenData} template={selectedTemplate} onTemplateChange={handleTemplateChange} />
+              </div>
 
-              </div>
-            ) : (
-              <div className="h-full min-h-[450px] border-2 border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center p-10 text-center relative overflow-hidden bg-white/5 backdrop-blur-2xl">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-500/20 to-orange-500/10 border border-red-500/20 flex items-center justify-center mb-4 shadow-lg">
-                  <Wand2 className="w-8 h-8 text-red-400" />
-                </div>
-                <h2 className="text-lg font-bold text-white mb-2">AI Resume Preview</h2>
-                <p className="text-gray-400 text-xs max-w-sm leading-relaxed">
-                  Provide your current resume data and a target job description on the left. AI will analyze the match gap and generate your tailored resume here.
-                </p>
-              </div>
-            )}
+              {/* Resume Editor Preview */}
+              <ResumeEditor
+                data={resume.rewrittenData || { name: User?.name || "Applicant Name", rawText: resume.rawText }}
+                template={selectedTemplate}
+                onTemplateChange={handleTemplateChange}
+              />
+
+            </div>
           </div>
 
         </div>
@@ -276,6 +285,48 @@ export function BuilderPage() {
 
       {/* Footer */}
       <Footer />
+    </div>
+  );
+}
+
+export function BuilderRedirect() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchLatestAndRedirect = async () => {
+      try {
+        const { data } = await axios.get(`${API_BASE}/api/resume`, {
+          withCredentials: true,
+        });
+        const list = data.resumes || [];
+        if (list.length > 0 && list[0]._id) {
+          navigate(`/builder/${list[0]._id}`, { replace: true });
+        } else {
+          // Create default resume draft if none exists
+          const createRes = await axios.post(
+            `${API_BASE}/api/resume`,
+            { title: "My Master Resume", rawText: "" },
+            { withCredentials: true }
+          );
+          if (createRes.data.resume?._id) {
+            navigate(`/builder/${createRes.data.resume._id}`, { replace: true });
+          } else {
+            navigate("/dashboard");
+          }
+        }
+      } catch (err) {
+        console.error("Builder redirect error:", err);
+        navigate("/dashboard");
+      }
+    };
+
+    fetchLatestAndRedirect();
+  }, [navigate]);
+
+  return (
+    <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center text-white">
+      <Loader2 className="w-10 h-10 text-red-500 animate-spin mb-4" />
+      <p className="text-gray-400 text-sm font-medium">Opening Builder Workspace...</p>
     </div>
   );
 }

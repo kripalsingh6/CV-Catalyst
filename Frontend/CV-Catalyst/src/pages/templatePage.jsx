@@ -86,27 +86,32 @@ export function TemplatesPage() {
               </p>
 
               {/* Visual Mockup Form of Classic Template */}
-              <div className="bg-white text-gray-900 rounded-xl p-4 mb-6 shadow-inner font-sans text-[10px] space-y-3 border border-gray-200 pointer-events-none select-none">
-                <div className="text-center pb-2 border-b border-gray-200">
-                  <div className="font-extrabold text-sm text-gray-900">ALEX MORGAN</div>
-                  <div className="text-[9px] text-gray-500 flex justify-center gap-2 mt-0.5">
-                    <span>alex@example.com</span> • <span>+1 (555) 019-2834</span>
+              <div className="bg-white text-black rounded-xl p-4 mb-6 shadow-inner font-serif text-[10px] space-y-2 border border-gray-200 pointer-events-none select-none">
+                <div className="text-center">
+                  <div className="font-extrabold text-xs text-black">Kripal Singh Thakur</div>
+                  <div className="text-[8px] text-black mt-0.5">
+                    Bhopal, MP | +91 8770534091 | thakurkripalsingh6@gmail.com
+                  </div>
+                  <div className="text-[8px] text-black underline flex justify-center gap-1">
+                    <span>LinkedIn</span> | <span>GitHub</span> | <span>LeetCode</span>
                   </div>
                 </div>
                 <div>
-                  <div className="font-bold text-[9px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-1">
-                    Professional Summary
+                  <div className="font-bold text-[8px] text-black uppercase border-b border-black pb-0.5 mb-1">
+                    PROFESSIONAL SUMMARY
                   </div>
-                  <div className="text-[9px] text-gray-600 leading-tight">
-                    Results-driven Senior Engineer with 6+ years optimizing high-scale applications...
+                  <div className="text-[8px] text-black leading-tight">
+                    Innovative Full-Stack Engineer with expertise in React.js, Node.js, and AI API integration...
                   </div>
                 </div>
                 <div>
-                  <div className="font-bold text-[9px] text-gray-900 uppercase border-b border-gray-300 pb-0.5 mb-1">
-                    Experience
+                  <div className="font-bold text-[8px] text-black uppercase border-b border-black pb-0.5 mb-1">
+                    EDUCATION
                   </div>
-                  <div className="font-bold text-[9px] text-gray-900">Lead Tech Architect - Acme Corp</div>
-                  <div className="text-[8px] text-gray-500">• Led team of 12 engineers building microservices</div>
+                  <div className="flex justify-between text-[8px] font-bold text-black">
+                    <span>School of Information Technology, RGPV</span>
+                    <span>Bhopal, MP</span>
+                  </div>
                 </div>
               </div>
             </div>

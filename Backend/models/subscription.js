@@ -8,11 +8,11 @@ const SubscriptionSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
-     stripeCustomerId: {
+    razorpayCustomerId: {
       type: String,
-      required: true,
+      default: "",
     },
-    stripeSubscriptionId: {
+    razorpayOrderId: {
       type: String,
       required: true,
     },
@@ -31,26 +31,27 @@ const SubscriptionSchema = new mongoose.Schema(
         "trialing",
         "incomplete",
         "unpaid",
+        "inactive",
       ],
       default: "active",
     },
-    currentPeriodStart: { 
-        type: Date,
-         default: null 
-        },
-    currentPeriodEnd: { 
-        type: Date, 
-        default: null 
+    currentPeriodStart: {
+      type: Date,
+      default: null,
     },
-     cancelAtPeriodEnd: { 
-        type: Boolean, 
-        default: false 
+    currentPeriodEnd: {
+      type: Date,
+      default: null,
     },
-        payments: [
+    cancelAtPeriodEnd: {
+      type: Boolean,
+      default: false,
+    },
+    payments: [
       {
-        stripePaymentIntentId: String,
-        amount: Number,          // in paise/cents
-        currency: { type: String, default: "inr" },
+        razorpayPaymentId: String,
+        amount: Number, // in paise
+        currency: { type: String, default: "INR" },
         status: {
           type: String,
           enum: ["succeeded", "failed", "pending", "refunded"],
@@ -63,8 +64,8 @@ const SubscriptionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-SubscriptionSchema.index({ stripeCustomerId: 1 });
-SubscriptionSchema.index({ stripeSubscriptionId: 1 });
+SubscriptionSchema.index({ razorpayCustomerId: 1 });
+SubscriptionSchema.index({ razorpayOrderId: 1 });
 
 const Subscription = mongoose.model("Subscription", SubscriptionSchema);
 export default Subscription;

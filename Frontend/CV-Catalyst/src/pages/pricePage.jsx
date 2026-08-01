@@ -22,13 +22,13 @@ const PRO_FEATURES = [
   { label: "Unlimited resume generations", on: true },
   { label: "Advanced ATS score analysis", on: true },
   { label: "All templates (classic, modern, minimal)", on: true },
-  { label: "AI-powered JD keyword matching", on: true },
-  { label: "Full AI rewrite engine", on: true },
+  { label: "Smart JD keyword matching", on: true },
+  { label: "Full rewrite engine", on: true },
   { label: "Priority support", on: true },
 ];
 
 const PRICING = {
-  monthly: { amount: 499, label: "₹499", sub: "/mo" },
+  monthly: { amount: 1, label: "₹1", sub: "/mo" },
   yearly: { amount: 4199, label: "₹4,199", sub: "/yr", strike: "₹5,988", billedNote: "billed yearly · save ~30%" },
 };
 
@@ -94,8 +94,8 @@ export function PricingPage() {
         key: data.key,
         amount: data.amount,
         currency: data.currency || "INR",
-        name: "CV-Catalyst",
-        description: `Pro plan — ${billing === "monthly" ? "Monthly" : "Yearly"}`,
+        name: "CV-Catalyst Pro",
+        description: `CV-Catalyst Pro — ${billing === "monthly" ? "Monthly" : "Yearly"}`,
         order_id: data.orderId,
         prefill: { name: User?.name || "", email: User?.email || "" },
         theme: { color: "#ef4444" },
@@ -155,7 +155,7 @@ export function PricingPage() {
             <span>Transparent Pricing Plans</span>
           </div>
           <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mb-4 leading-tight">
-            Accelerate Your Career with <span className="bg-gradient-to-r from-red-400 via-orange-400 to-amber-400 bg-clip-text text-transparent">CV-Catalyst Pro</span>
+            Accelerate Your Career with <span className="text-white">CV-Catalyst Pro</span>
           </h1>
           <p className="text-gray-400 text-sm sm:text-base leading-relaxed">
             Simple, predictable pricing with no hidden fees. Upgrade to unlock unlimited AI optimization and premium templates.
@@ -254,7 +254,7 @@ export function PricingPage() {
 
             <div>
               <div className="flex items-center gap-2 mb-2 mt-2">
-                <h3 className="text-xl font-bold text-white">Pro Plan</h3>
+                <h3 className="text-xl font-bold text-white">CV-Catalyst Pro</h3>
                 <Sparkles className="h-4 w-4 text-orange-400" />
               </div>
               <p className="text-gray-400 text-xs mb-6">Designed for active job seekers aiming for top callbacks.</p>
@@ -288,7 +288,7 @@ export function PricingPage() {
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4" />
-                    Upgrade to Pro Now
+                    Upgrade to CV-Catalyst Pro
                   </>
                 )}
               </button>

@@ -19,7 +19,7 @@ const getRazorpayInstance = () => {
 };
 
 const PLAN_AMOUNTS = {
-  monthly: 49900, // ₹499 in paise
+  monthly: 100, // ₹1 in paise (100 paise)
   yearly: 419900, // ₹4,199 in paise
 };
 
@@ -154,8 +154,8 @@ export const verifyPayment = async (req, res) => {
       { user: req.user._id },
       {
         user: req.user._id,
-        stripeCustomerId: req.user._id.toString(),
-        stripeSubscriptionId: razorpay_order_id,
+        razorpayCustomerId: req.user._id.toString(),
+        razorpayOrderId: razorpay_order_id,
         plan: "pro",
         status: "active",
         currentPeriodStart: now,
@@ -163,7 +163,7 @@ export const verifyPayment = async (req, res) => {
         cancelAtPeriodEnd: false,
         $push: {
           payments: {
-            stripePaymentIntentId: razorpay_payment_id,
+            razorpayPaymentId: razorpay_payment_id,
             amount: paymentAmount,
             currency: paymentCurrency,
             status: "succeeded",

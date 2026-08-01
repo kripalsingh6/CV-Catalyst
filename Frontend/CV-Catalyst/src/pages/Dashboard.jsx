@@ -17,6 +17,7 @@ import {
   Crown,
   Loader2,
   X,
+  Check,
   CheckCircle2,
   BarChart3,
   Calendar,
@@ -26,6 +27,12 @@ import {
   Layers,
   Edit3,
   ExternalLink,
+  UploadCloud,
+  FileUp,
+  Upload,
+  Image as ImageIcon,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import ATSScoreRing from "../components/resume/ATSScoreRing";
 import KeywordBadges from "../components/resume/KeywordBadges";
@@ -44,11 +51,23 @@ export function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all"); // "all" | "rewritten" | "analyzed" | "draft"
 
-  // Modals state
+  // Modals & Create state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newRawText, setNewRawText] = useState("");
+  const [newJdText, setNewJdText] = useState("");
+  const [createSelectedTemplate, setCreateSelectedTemplate] = useState(
+    localStorage.getItem("selectedTemplatePreference") || "classic"
+  );
   const [isSubmittingCreate, setIsSubmittingCreate] = useState(false);
+  const [isExtractingFile, setIsExtractingFile] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  // + Button file & image attachment state
+  const [attachedFileName, setAttachedFileName] = useState("");
+  const [attachedFileType, setAttachedFileType] = useState("");
+  const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
+  const [showDetailsSection, setShowDetailsSection] = useState(true);
 
   // Selected Resume for Preview / Analyze
   const [activeResume, setActiveResume] = useState(null);
@@ -61,6 +80,54 @@ export function DashboardPage() {
 
   // Rewrite Loading State per Resume ID
   const [rewritingId, setRewritingId] = useState(null);
+
+  // Handle local resume file text extraction (PDF, Image, Word)
+  const handleExtractFileText = async (file) => {
+    if (!file) return;
+
+    const allowedTypes = ["pdf", "png", "jpg", "jpeg", "webp", "docx", "doc"];
+    const ext = file.name.split(".").pop().toLowerCase();
+    if (!allowedTypes.includes(ext)) {
+      toast.error("Supported files: PDF, Images (PNG, JPG, WEBP), and Word documents (.docx, .doc)");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File size must be less than 10MB");
+      return;
+    }
+
+    setAttachedFileName(file.name);
+    setAttachedFileType(["png", "jpg", "jpeg", "webp"].includes(ext) ? "image" : "document");
+    setIsPlusMenuOpen(false);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      setIsExtractingFile(true);
+      toast.loading("Extracting text from local file using AI OCR...", { id: "extract-toast" });
+      const { data } = await axios.post(`${API_BASE}/api/resume/extract-text`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true,
+      });
+
+      if (data.text) {
+        setNewRawText(data.text);
+        if (!newTitle.trim() && data.fileName) {
+          const autoTitle = data.fileName.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+          setNewTitle(autoTitle.charAt(0).toUpperCase() + autoTitle.slice(1));
+        }
+        toast.success("Resume text extracted successfully!", { id: "extract-toast" });
+      } else {
+        toast.error("Could not extract text from file", { id: "extract-toast" });
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to extract text from file", { id: "extract-toast" });
+    } finally {
+      setIsExtractingFile(false);
+    }
+  };
 
   // Fetch all resumes
   const fetchResumes = async () => {
@@ -92,17 +159,26 @@ export function DashboardPage() {
 
     try {
       setIsSubmittingCreate(true);
-      const templatePref = localStorage.getItem("selectedTemplatePreference") || "classic";
       const { data } = await axios.post(
         `${API_BASE}/api/resume`,
-        { title: newTitle, rawText: newRawText, template: templatePref },
+        {
+          title: newTitle,
+          rawText: newRawText,
+          template: createSelectedTemplate,
+          jobDescription: newJdText,
+        },
         { withCredentials: true }
       );
-      toast.success("Resume created successfully!");
+      toast.success(data.message || "Resume created and AI optimized!");
       setIsCreateModalOpen(false);
       setNewTitle("");
       setNewRawText("");
+      setNewJdText("");
       fetchResumes();
+
+      if (data.resume?._id) {
+        navigate(`/builder/${data.resume._id}`);
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to create resume");
     } finally {
@@ -203,69 +279,35 @@ export function DashboardPage() {
     }
   };
 
-  // Export Resume Helper
+  // Export Resume Helper (Download PDF generated from AI)
   const handleExportPDF = async (resumeId, title, e) => {
     if (e) e.stopPropagation();
-    const toastId = toast.loading("Preparing download...");
+    const toastId = toast.loading("Generating AI Resume PDF...");
     try {
+      const response = await axios.post(
+        `${API_BASE}/api/resume/${resumeId}/export-pdf`,
+        { template: "classic" },
+        { responseType: "blob", withCredentials: true }
+      );
+
       const resumeToExport = resumes.find((r) => r._id === resumeId);
-      const data = resumeToExport?.rewrittenData || {};
+      const dataName = resumeToExport?.rewrittenData?.name || title || "Resume";
+      const fileName = `${dataName.replace(/[^a-z0-9]/gi, "_")}_AI_Resume.pdf`;
 
-      const name = data.name || title || "Resume";
-      const email = data.email || "";
-      const phone = data.phone || "";
-      const summary = data.summary || "";
-      const experience = data.experience || [];
-      const education = data.education || [];
-      const skills = data.skills || [];
-
-      const expText = experience
-        .map((exp) => `${exp.title} | ${exp.company} (${exp.startDate} - ${exp.endDate || "Present"})\n${(exp.bullets || []).map((b) => `• ${b}`).join("\n")}`)
-        .join("\n\n");
-
-      const eduText = education
-        .map((edu) => `${edu.degree} ${edu.field ? `in ${edu.field}` : ""} - ${edu.institution} (${edu.startDate} - ${edu.endDate || ""})`)
-        .join("\n");
-
-      const fullText = `===========================================================
-${name.toUpperCase()}
-Email: ${email} | Phone: ${phone}
-===========================================================
-
-PROFESSIONAL SUMMARY
------------------------------------------------------------
-${summary}
-
-WORK EXPERIENCE
------------------------------------------------------------
-${expText}
-
-TECHNICAL & CORE SKILLS
------------------------------------------------------------
-${skills.join(", ")}
-
-EDUCATION
------------------------------------------------------------
-${eduText}
-===========================================================`;
-
-      const blob = new Blob([fullText], { type: "text/plain;charset=utf-8" });
+      const blob = new Blob([response.data], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `${(title || name).replace(/[^a-z0-9]/gi, "_")}_Resume.txt`;
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      toast.dismiss(toastId);
-      toast.success("Resume downloaded immediately!");
-    } catch {
-      toast.dismiss(toastId);
-      toast.error("Failed to download resume");
-    } finally {
-      toast.dismiss(toastId);
+      toast.success("AI Resume PDF downloaded successfully!", { id: toastId });
+    } catch (err) {
+      console.error("PDF download error:", err);
+      toast.error("Failed to download PDF", { id: toastId });
     }
   };
 
@@ -312,21 +354,21 @@ ${eduText}
           <div>
             <div className="flex items-center gap-3 mb-2">
               <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-                Welcome back,{" "}
-                <span className="bg-gradient-to-r from-red-400 via-orange-400 to-amber-400 bg-clip-text text-transparent">
-                  {User?.name || "Job Seeker"}
-                </span>{" "}
-                👋
+                Welcome back
+                {User?.name ? (
+                  <>
+                    ,{" "}
+                    <span className="text-white">
+                      {User.name}
+                    </span>
+                  </>
+                ) : null}
               </h1>
-              <span
-                className={`px-3 py-1 rounded-full text-xs font-semibold border ${
-                  User?.subscription === "pro"
-                    ? "bg-red-500/10 border-red-500/30 text-red-400"
-                    : "bg-white/5 border-white/10 text-gray-400"
-                }`}
-              >
-                {User?.subscription === "pro" ? "PRO MEMBER" : "FREE TIER"}
-              </span>
+              {User?.subscription === "pro" && (
+                <span className="px-3 py-1 rounded-full text-xs font-semibold border bg-red-500/10 border-red-500/30 text-red-400">
+                  PRO MEMBER
+                </span>
+              )}
             </div>
             <p className="text-gray-400 text-sm max-w-xl leading-relaxed">
               Manage your tailored resumes, trigger AI optimization, analyze job postings, and maximize your interview callback rate.
@@ -427,8 +469,14 @@ ${eduText}
                 <Crown className="w-4 h-4 text-yellow-400" />
               </div>
             </div>
-            <div className="text-xl font-bold text-white uppercase tracking-tight">
-              {User?.subscription === "pro" ? "Pro Plan" : "Free Plan"}
+            <div className="text-xl font-extrabold uppercase tracking-tight">
+              {User?.subscription === "pro" ? (
+                <span className="text-white">
+                  CV-Catalyst Pro
+                </span>
+              ) : (
+                <span className="text-white">Free Plan</span>
+              )}
             </div>
             <button
               onClick={() => navigate("/pricing")}
@@ -439,74 +487,245 @@ ${eduText}
           </div>
         </div>
 
-        {/* Create Resume Form Section - Always Visible */}
+        {/* Create Resume Form Section - Interactive Prompt Bar with '+' File/Image Upload & Description */}
         <div id="create-resume-section" className="mb-10 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
-          <div className="flex items-center justify-between mb-4 pb-4 border-b border-white/10">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 pb-4 border-b border-white/10 gap-4">
             <div>
               <h3 className="text-xl font-bold text-white flex items-center gap-2">
                 <FileText className="w-5 h-5 text-red-400" />
-                Create New Resume
+                Create & Optimize Resume
               </h3>
               <p className="text-xs text-gray-400 mt-1">
-                Enter a title and paste your raw resume text below.
+                Click the <span className="font-bold text-white">+</span> button to add a local document or image, type your prompt, and let AI extract text & optimize your resume.
               </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-full text-xs font-semibold flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Smart AI Extraction</span>
+              </span>
             </div>
           </div>
 
-          <form onSubmit={handleCreateResume} className="space-y-5">
-            <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider">
-                Resume Title
-              </label>
+          <form onSubmit={handleCreateResume} className="space-y-6">
+            {/* Hidden File Inputs for Local File & Image */}
+            <input
+              type="file"
+              id="plus-local-file-input"
+              accept=".pdf,.docx,.doc"
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  handleExtractFileText(e.target.files[0]);
+                }
+              }}
+              className="hidden"
+              disabled={isExtractingFile}
+            />
+            <input
+              type="file"
+              id="plus-local-image-input"
+              accept="image/*,.png,.jpg,.jpeg,.webp"
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  handleExtractFileText(e.target.files[0]);
+                }
+              }}
+              className="hidden"
+              disabled={isExtractingFile}
+            />
+
+            {/* Prompt Input Pill Bar (matching user screenshot) */}
+            <div className="relative bg-[#18181b] border border-white/20 rounded-full p-2 sm:p-2.5 flex items-center gap-3 shadow-2xl focus-within:border-red-500/50 focus-within:ring-2 focus-within:ring-red-500/20 transition-all">
+              
+              {/* + (Plus) Button with Popover Menu */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsPlusMenuOpen(!isPlusMenuOpen)}
+                  title="Add file or image from local"
+                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer active:scale-95"
+                >
+                  <Plus className="w-5 h-5 text-gray-200" />
+                </button>
+
+                {/* Dropdown Menu for + Button */}
+                {isPlusMenuOpen && (
+                  <div className="absolute left-0 top-12 z-30 w-64 bg-[#1f1f23] border border-white/15 rounded-2xl shadow-2xl p-2 flex flex-col gap-1 backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-150">
+                    <div className="px-3 py-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                      Add Local Content
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsPlusMenuOpen(false);
+                        document.getElementById("plus-local-file-input")?.click();
+                      }}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-white hover:bg-white/10 transition cursor-pointer text-left"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-red-500/20 border border-red-500/30 flex items-center justify-center text-red-400">
+                        <FileText className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-white">File</div>
+                        <div className="text-[10px] text-gray-400">PDF, Word (.docx, .doc)</div>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsPlusMenuOpen(false);
+                        document.getElementById("plus-local-image-input")?.click();
+                      }}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-white hover:bg-white/10 transition cursor-pointer text-left"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-400">
+                        <ImageIcon className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-white">Image</div>
+                        <div className="text-[10px] text-gray-400">PNG, JPG, WEBP (AI OCR)</div>
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Attached File/Image Chip Tag */}
+              {attachedFileName && (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs text-white whitespace-nowrap animate-in fade-in duration-200">
+                  {isExtractingFile ? (
+                    <Loader2 className="w-3.5 h-3.5 text-red-400 animate-spin" />
+                  ) : attachedFileType === "image" ? (
+                    <ImageIcon className="w-3.5 h-3.5 text-orange-400" />
+                  ) : (
+                    <FileText className="w-3.5 h-3.5 text-red-400" />
+                  )}
+                  <span className="max-w-[130px] truncate text-gray-200 font-medium">
+                    {attachedFileName}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAttachedFileName("");
+                      setAttachedFileType("");
+                      setNewRawText("");
+                    }}
+                    className="p-0.5 rounded-full hover:bg-white/20 text-gray-400 hover:text-white transition"
+                    title="Remove attached file"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
+              {/* Main Input Field */}
               <input
                 id="create-resume-title"
                 type="text"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="e.g. Senior Software Engineer Resume"
-                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-red-500/50 transition"
+                placeholder="Ask anything, enter resume title, or paste prompt..."
+                className="flex-1 bg-transparent text-sm text-white placeholder-gray-400 focus:outline-none px-2"
                 required
               />
-            </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider">
-                Raw Resume Content
-              </label>
-              <textarea
-                value={newRawText}
-                onChange={(e) => setNewRawText(e.target.value)}
-                placeholder="Paste work experience, skills, education, contact info..."
-                className="w-full h-40 bg-black/40 border border-white/10 rounded-xl p-4 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-red-500/50 resize-none transition"
-              />
-            </div>
-
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+              {/* Toggle Details Section Button */}
               <button
                 type="button"
-                onClick={() => {
-                  setNewTitle("");
-                  setNewRawText("");
-                }}
-                className="px-4 py-2.5 rounded-xl border border-white/10 hover:bg-white/10 text-xs font-semibold text-gray-300 transition cursor-pointer"
+                onClick={() => setShowDetailsSection(!showDetailsSection)}
+                title={showDetailsSection ? "Hide Details Section" : "Show Description Section"}
+                className={`p-2 rounded-full text-gray-400 hover:text-white transition cursor-pointer ${
+                  showDetailsSection ? "bg-white/10 text-white" : ""
+                }`}
               >
-                Clear Form
+                {showDetailsSection ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
               </button>
+
+              {/* Submit Create Button */}
               <button
                 type="submit"
-                disabled={isSubmittingCreate}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-orange-500 hover:opacity-90 transition font-semibold text-xs text-white shadow-lg disabled:opacity-50 cursor-pointer"
+                disabled={isSubmittingCreate || isExtractingFile}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-red-600 via-orange-500 to-amber-500 hover:opacity-90 transition font-semibold text-xs text-white shadow-lg disabled:opacity-50 cursor-pointer whitespace-nowrap"
               >
                 {isSubmittingCreate ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Creating...</span>
+                  </>
                 ) : (
                   <>
-                    <Plus className="w-4 h-4" />
-                    <span>Create Resume</span>
+                    <Sparkles className="w-4 h-4" />
+                    <span>{newJdText.trim() ? "AI Optimize" : "Create"}</span>
                   </>
                 )}
               </button>
             </div>
+
+            {/* Description & Job Details Section */}
+            {showDetailsSection && (
+              <div className="space-y-5 pt-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {/* Target Job Description */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider flex items-center justify-between">
+                      <span>Target Job Description (Optional)</span>
+                      <span className="text-[10px] text-orange-400 font-normal">For AI Optimization & Correction</span>
+                    </label>
+                    <textarea
+                      value={newJdText}
+                      onChange={(e) => setNewJdText(e.target.value)}
+                      placeholder="Paste target job title, required skills, responsibilities..."
+                      className="w-full h-28 bg-black/40 border border-white/10 rounded-2xl p-3.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50 resize-none transition"
+                    />
+                  </div>
+
+                  {/* Extracted / Raw Resume Content */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 mb-1.5 uppercase tracking-wider flex items-center justify-between">
+                      <span>Description / Raw Resume Content</span>
+                      <span className="text-[10px] text-gray-400 font-normal">Auto-extracted from local file/image</span>
+                    </label>
+                    <textarea
+                      value={newRawText}
+                      onChange={(e) => setNewRawText(e.target.value)}
+                      placeholder="Extracted work experience, skills, education, summary..."
+                      className="w-full h-28 bg-black/40 border border-white/10 rounded-2xl p-3.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-red-500/50 resize-none transition"
+                    />
+                  </div>
+                </div>
+
+                {/* Footer Controls */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 border-t border-white/10">
+                  <div className="text-[11px] text-gray-400">
+                    {newJdText.trim() ? (
+                      <span className="text-orange-400 flex items-center gap-1">
+                        <Sparkles className="w-3.5 h-3.5 inline" /> AI will optimize & align resume content for target JD
+                      </span>
+                    ) : (
+                      <span>Tip: Click '+' on the input bar to attach a local document or image to extract text</span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewTitle("");
+                        setNewRawText("");
+                        setNewJdText("");
+                        setAttachedFileName("");
+                        setAttachedFileType("");
+                      }}
+                      className="px-4 py-2 rounded-xl border border-white/10 hover:bg-white/10 text-xs font-semibold text-gray-300 transition cursor-pointer"
+                    >
+                      Clear Form
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </form>
         </div>
 
@@ -580,25 +799,17 @@ ${eduText}
               <h3 className="text-lg font-bold text-white mb-2">
                 {searchQuery ? "No matching resumes found" : "No resumes found"}
               </h3>
-              <p className="text-gray-400 text-xs max-w-sm mb-6">
+              <p className="text-gray-400 text-xs max-w-sm">
                 {searchQuery
                   ? `No resumes matched "${searchQuery}". Try clearing your search query.`
                   : "Create your first resume draft or upload plain text to start optimizing with AI."}
               </p>
-              {searchQuery ? (
+              {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-white transition"
+                  className="mt-6 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-white transition cursor-pointer"
                 >
                   Clear Search
-                </button>
-              ) : (
-                <button
-                  onClick={() => setIsCreateModalOpen(true)}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-orange-500 hover:opacity-90 transition font-semibold text-xs text-white shadow-lg cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" />
-                  Create Resume
                 </button>
               )}
             </div>

@@ -66,10 +66,12 @@ export default function Header() {
         </button>
 
         <button 
-          onClick={() => navigate("/pricing")}
-          className="hover:text-white transition-colors cursor-pointer"
+          onClick={() => navigate(User ? "/builder" : "/login")}
+          className={`hover:text-white transition-colors cursor-pointer ${
+            location.pathname.startsWith("/builder") ? "text-white font-medium" : ""
+          }`}
         >
-          FAQ
+          Builder
         </button>
       </nav>
 
@@ -88,7 +90,7 @@ export default function Header() {
                 </span>
                 <span className="text-[10px] text-red-400 font-medium flex items-center gap-1">
                   <Sparkles className="w-2.5 h-2.5" />
-                  {User.subscription === "pro" ? "PRO PLAN" : "FREE PLAN"}
+                  {User.subscription === "pro" ? "CV-CATALYST PRO" : "FREE PLAN"}
                 </span>
               </div>
             </div>

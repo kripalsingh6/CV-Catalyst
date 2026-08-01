@@ -12,28 +12,36 @@ const ResumeUploader = ({ resumeId, onUploadSuccess, initialText }) => {
   const processFile = async (file) => {
     if (!file) return;
 
-    if (file.type !== 'application/pdf' && !file.name.endsWith('.pdf')) {
-      toast.error('Only PDF files are supported currently');
+    const allowedTypes = ['pdf', 'png', 'jpg', 'jpeg', 'webp', 'docx', 'doc'];
+    const ext = file.name.split('.').pop().toLowerCase();
+
+    if (!allowedTypes.includes(ext)) {
+      toast.error('Supported formats: PDF, Images (PNG, JPG, WEBP), and Word documents');
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size must be less than 5MB');
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size must be less than 10MB');
       return;
     }
 
     setIsUploading(true);
     const formData = new FormData();
-    formData.append('resume', file);
+    formData.append('file', file);
 
     try {
-      const { data } = await api.post(`/resume/${resumeId}/upload-pdf`, formData, {
+      const { data } = await api.post(`/resume/extract-text`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      toast.success('Resume parsed successfully');
-      onUploadSuccess(data.rawText);
+      toast.success('Resume parsed successfully with AI OCR');
+      if (data.text) {
+        if (resumeId) {
+          await api.post(`/resume/${resumeId}/upload-raw`, { rawText: data.text });
+        }
+        onUploadSuccess(data.text);
+      }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to parse PDF');
+      toast.error(error.response?.data?.message || 'Failed to parse file content');
     } finally {
       setIsUploading(false);
     }
@@ -97,8 +105,8 @@ const ResumeUploader = ({ resumeId, onUploadSuccess, initialText }) => {
             <FileText className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-white">Step 1: Upload Existing Resume</h3>
-            <p className="text-xs text-gray-400">PDF extract or raw text paste</p>
+            <h3 className="text-base font-semibold text-white">Step 1: Extract Existing Resume</h3>
+            <p className="text-xs text-gray-400">PDF, Image (PNG/JPG), Word or raw text paste</p>
           </div>
         </div>
 
@@ -111,7 +119,7 @@ const ResumeUploader = ({ resumeId, onUploadSuccess, initialText }) => {
                 : 'text-gray-400 hover:text-white'
             }`}
           >
-            Upload PDF
+            Upload File
           </button>
           <button
             onClick={() => setMode('paste')}
@@ -141,15 +149,15 @@ const ResumeUploader = ({ resumeId, onUploadSuccess, initialText }) => {
           >
             <input 
               type="file" 
-              accept=".pdf,application/pdf"
+              accept=".pdf,.png,.jpg,.jpeg,.webp,.docx,.doc,application/pdf,image/*"
               onChange={handleFileChange}
               className="hidden" 
             />
             {isUploading ? (
               <div className="flex flex-col items-center">
                 <Loader2 className="w-10 h-10 text-red-500 animate-spin mb-4" />
-                <p className="text-white font-semibold">Extracting text from PDF...</p>
-                <p className="text-gray-400 text-xs mt-1">OCR engine processing document</p>
+                <p className="text-white font-semibold">Extracting text from file...</p>
+                <p className="text-gray-400 text-xs mt-1">AI OCR processing document / image</p>
               </div>
             ) : (
               <div className="flex flex-col items-center">
@@ -157,11 +165,11 @@ const ResumeUploader = ({ resumeId, onUploadSuccess, initialText }) => {
                   <UploadCloud className="w-8 h-8 text-red-400" />
                 </div>
                 <p className="text-white font-semibold text-base mb-1">
-                  {isDragActive ? 'Drop your PDF file here' : 'Click or drag PDF to upload'}
+                  {isDragActive ? 'Drop your resume file here' : 'Click or drag file (PDF, Image, Word) to upload'}
                 </p>
-                <p className="text-gray-400 text-xs mb-4">Supports PDF files up to 5MB.</p>
+                <p className="text-gray-400 text-xs mb-4">Supports PDF, PNG, JPG, WEBP, and Word docs up to 10MB.</p>
                 <span className="inline-block px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-medium rounded-xl transition border border-white/10">
-                  Select File
+                  Select Local File
                 </span>
               </div>
             )}
