@@ -40,7 +40,10 @@ export const generatePDF = async (resumeData, template = "classic") => {
       printBackground: true,
       preferCSSPageSize: true,
       pageRanges: "1",
-      margin: { top: "0.25in", right: "0.3in", bottom: "0.25in", left: "0.3in" },
+      margin:
+        template === "modern"
+          ? { top: "0in", right: "0in", bottom: "0in", left: "0in" }
+          : { top: "0.25in", right: "0.3in", bottom: "0.25in", left: "0.3in" },
     });
 
     return pdfBuffer;

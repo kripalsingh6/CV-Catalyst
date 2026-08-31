@@ -1,0 +1,152 @@
+================================================================================
+CV-CATALYST: AI-POWERED ATS RESUME BUILDER & CAREER SUITE
+================================================================================
+An Enterprise-Grade, Full-Stack SaaS Platform for AI Resume Optimization, 
+Job Description Matching, and Server-Side High-Fidelity PDF Generation.
+
+--------------------------------------------------------------------------------
+1. EXECUTIVE OVERVIEW & PROBLEM STATEMENT
+--------------------------------------------------------------------------------
+Modern hiring relies heavily on automated Applicant Tracking Systems (ATS) 
+such as Lever, Greenhouse, Workday, and Taleo, which reject over 75% of job 
+applications before a human recruiter ever sees them. Resumes fail primarily 
+due to missing target keywords, unparseable scanned file formats, non-standard 
+layouts, and lack of quantifiable metrics.
+
+CV-Catalyst solves this problem by using Google Gemini AI models to analyze 
+target Job Descriptions (JDs), extract key skills and competencies, intelligently 
+rewrite resume content to highlight relevant experience, calculate realistic ATS 
+compatibility scores (0-100%), and render print-ready PDFs using server-side 
+headless Chrome browser automation.
+
+--------------------------------------------------------------------------------
+2. COMPLETE TECH STACK & SKILLSET MATRIX
+--------------------------------------------------------------------------------
+- FRONTEND FRAMEWORK: React 19, Vite 8
+- UI & STYLING: TailwindCSS v4, Material UI (MUI v9), @emotion/styled, Lucide React
+- STATE MANAGEMENT & FORMS: React Hook Form, React Context API
+- BACKEND RUNTIME: Node.js, Express 5 RESTful API Gateway
+- DATABASE & ORM: MongoDB, Mongoose v9
+- AI / LLM SERVICE: Google Generative AI SDK (@google/generative-ai), 
+  Gemini 1.5 Flash, Gemini 2.0 Flash, Gemini 1.5 Pro
+- OCR & COMPUTER VISION: Gemini Vision OCR API (fallback for scanned PDFs/images)
+- DOCUMENT PARSING: pdf-parse (native PDF text), mammoth (Word .docx parser)
+- PDF RENDERING ENGINE: Puppeteer v25 (server-side headless Chrome)
+- AUTHENTICATION & SECURITY: Passport.js (Local Strategy), passport-local-mongoose, 
+  express-session, connect-mongo session store, cookie-parser, CORS
+- PAYMENT GATEWAY: Razorpay API, HMAC SHA256 cryptographic signature validation, 
+  Razorpay Webhooks (payment.captured)
+
+--------------------------------------------------------------------------------
+3. HOW IT WORKS (END-TO-END WORKFLOW)
+--------------------------------------------------------------------------------
+Step 1: Document Ingestion & Multi-Tier OCR Parsing
+- User uploads a resume file (.pdf, .docx, .png, .jpg) or pastes text.
+- Standard PDFs use pdf-parse; if text length is under 20 characters (indicating 
+  a scanned image PDF), the system automatically routes the file buffer to 
+  Gemini Vision OCR.
+- Word (.docx) files are converted via mammoth.
+
+Step 2: Job Description Intelligence (JD Agent)
+- The analyzeJobDescription service prompts Gemini to extract standard job 
+  titles, top 20 ranked keywords, non-negotiable "must-have" skills, optional 
+  "nice-to-have" qualifications, and expected tone.
+
+Step 3: Contextual Resume Optimization (Rewrite Agent)
+- The rewriteResume service combines user experience with extracted JD context.
+- Section bullets are re-engineered with strong action verbs, quantifiable 
+  metrics, and optimal keyword density.
+
+Step 4: Algorithmic ATS Scoring Engine
+- Evaluates resumes across 3 pillars: Structure & Contact Completeness (35 pts), 
+  Action Verbs & Quantifiable Impact (25 pts), and Job Description Keyword 
+  Alignment (40 pts), yielding a final score from 0 to 100%.
+
+Step 5: Server-Side PDF Rendering via Puppeteer
+- Structured resume JSON is compiled into custom HTML/CSS print templates 
+  (Classic, Modern, Minimal).
+- Puppeteer launches an isolated headless Chromium browser, renders A4 pages 
+  with Google Fonts (networkidle0 wait state), and returns a text-selectable 
+  binary PDF stream to the user.
+
+Step 6: Monetization & Subscription Flow
+- Users can upgrade to Pro via Razorpay checkout.
+- Orders are validated server-side using HMAC SHA256 signatures, and webhooks 
+  automatically update user tier flags in MongoDB.
+
+--------------------------------------------------------------------------------
+4. KEY TECHNICAL ACHIEVEMENTS & INTERVIEW HIGHLIGHTS
+--------------------------------------------------------------------------------
+1. Multi-Model LLM Resilience & Fallback Architecture:
+   Designed a fallback chain (gemini-1.5-flash -> gemini-2.0-flash -> gemini-1.5-pro 
+   -> in-house regex/heuristic parser). If LLM APIs fail or rate limit, the system 
+   seamlessly degrades to an internal dynamic parser, guaranteeing 100% uptime.
+
+2. Dual-Mode Document OCR Extraction:
+   Prevents failures on scanned PDFs or image uploads by automatically detecting 
+   empty text buffers and triggering Gemini Vision OCR.
+
+3. Headless Chrome Server-Side PDF Engine:
+   Avoids canvas-based client libraries (like html2canvas) which create non-selectable 
+   rasterized images that fail ATS screeners. Puppeteer creates 100% text-selectable, 
+   vector-crisp A4 PDFs.
+
+4. Cryptographic Payment Verification:
+   Ensures tamper-proof payment processing via Razorpay HMAC SHA256 signature 
+   verification and asynchronous webhook fulfillment.
+
+--------------------------------------------------------------------------------
+5. REPOSITORY FILE STRUCTURE
+--------------------------------------------------------------------------------
+CV-Catalyst/
+├── main.txt                      <-- Plain text project presentation summary
+├── README.md                     <-- GitHub repository documentation
+├── PROJECT_SHOWCASE.md           <-- Comprehensive technical showcase document
+├── thumbnail.jpg                 <-- 1024x768 (4:3) Portfolio Thumbnail Image
+├── Backend/
+│   ├── config/ (mongodb.js, cloud.config.js)
+│   ├── Controllers/ (controller.auth.js, controller.payment.js, controller.resume.js, jd.controller.js)
+│   ├── middleware/ (middleware.auth.js, middleware.upload.js)
+│   ├── models/ (user.js, resume.js, subscription.js)
+│   ├── routes/ (route.auth.js, route.payment.js, route.resume.js, route.jd.js)
+│   ├── services/ (gemini.service.js, puppeteer.service.js)
+│   ├── templates/ (classic.template.js, modern.template.js, minimal.template.js)
+│   └── index.js
+└── Frontend/
+    ├── src/
+    │   ├── components/ (ATSScoreRing, ATSscore, JDInput, KeywordBadges, ResumeEditor, ResumeUploader)
+    │   ├── context/ (authContext.jsx)
+    │   ├── lib/ (axios.js)
+    │   ├── pages/ (Builder.jsx, Dashboard.jsx, loginPage.jsx, pricePage.jsx, signupPage.jsx, templatePage.jsx)
+    │   ├── App.jsx
+    │   └── main.jsx
+    ├── index.html
+    └── vite.config.js
+
+--------------------------------------------------------------------------------
+6. 30-SECOND ELEVATOR PITCH FOR RECRUITERS
+--------------------------------------------------------------------------------
+"CV-Catalyst is a full-stack SaaS application built with React 19, Node.js, 
+Express, MongoDB, and Google Gemini AI. It acts as an intelligent career assistant 
+that parses candidate resumes across multiple file formats—including scanned images 
+using Gemini Vision OCR—matches them against targeted job descriptions, calculates a 
+realistic ATS match score, and exports beautifully formatted, ATS-friendly PDFs 
+using server-side Puppeteer browser automation."
+
+--------------------------------------------------------------------------------
+7. LOCAL SETUP COMMANDS
+--------------------------------------------------------------------------------
+Backend Setup:
+  cd CV-Catalyst/Backend
+  npm install
+  npm start
+
+Frontend Setup:
+  cd CV-Catalyst/Frontend
+  npm install
+  npm run dev
+
+App URLs:
+  Frontend SPA: http://localhost:5173
+  Backend API:  http://localhost:3000
+================================================================================

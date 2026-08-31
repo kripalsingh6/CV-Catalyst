@@ -7,30 +7,14 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowedMimeTypes = [
-    "image/png",
-    "image/jpg",
-    "image/jpeg",
-    "image/webp",
-    "application/pdf",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "application/msword",
-  ];
-
+  const allowedMimeTypes = ["application/pdf"];
   const ext = file.originalname.toLowerCase();
-  const isAllowedExt =
-    ext.endsWith(".png") ||
-    ext.endsWith(".jpg") ||
-    ext.endsWith(".jpeg") ||
-    ext.endsWith(".webp") ||
-    ext.endsWith(".pdf") ||
-    ext.endsWith(".docx") ||
-    ext.endsWith(".doc");
+  const isAllowedExt = ext.endsWith(".pdf");
 
   if (allowedMimeTypes.includes(file.mimetype) || isAllowedExt) {
     cb(null, true);
   } else {
-    cb(new Error("Only PDF, Image (PNG, JPG, WEBP), and Word documents are supported"), false);
+    cb(new Error("Only PDF documents (.pdf) are supported"), false);
   }
 };
 

@@ -17,6 +17,20 @@ const UserSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true, 
+    },
+    githubId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    avatar: {
+      type: String,
+      default: "",
+    },
     subscription: {
       type: String,
       enum: ["free", "pro"],

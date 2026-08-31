@@ -382,27 +382,45 @@ const includesKeyword = (text, keyword) => {
   return pattern.test(text);
 };
 
-export const calculateATSScore = (rewrittenText, jdAnalysis = {}) => {
-  const text = rewrittenText.toLowerCase();
-  const { mustHave = ["react", "node.js", "javascript"], keywords = ["react", "node.js", "javascript", "rest api", "git"] } = jdAnalysis;
+export const calculateATSScore = (rewrittenText = "", jdAnalysis = {}) => {
+  const text = (typeof rewrittenText === "string" ? rewrittenText : JSON.stringify(rewrittenText)).toLowerCase();
+  if (!text || text.length < 20) return 45;
 
-  const mustHaveMatched = mustHave.filter((kw) =>
-    includesKeyword(text, kw.toLowerCase())
-  ).length;
+  let score = 0;
 
-  const keywordsMatched = keywords.filter((kw) =>
-    includesKeyword(text, kw.toLowerCase())
-  ).length;
+  // 1. Structure & Contact Completeness (up to 35 pts)
+  if (text.includes("email") || text.includes("@")) score += 5;
+  if (text.match(/(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/)) score += 5;
+  if (text.includes("linkedin") || text.includes("github")) score += 5;
+  if (text.includes("education") || text.includes("bachelor") || text.includes("university") || text.includes("school")) score += 7;
+  if (text.includes("summary") || text.includes("profile")) score += 5;
+  if (text.includes("experience") || text.includes("projects")) score += 8;
 
-  const mustHaveScore = mustHave.length
-    ? (mustHaveMatched / mustHave.length) * 60
-    : 45;
+  // 2. Action Verbs & Quantifiable Metrics (up to 25 pts)
+  const actionWords = ["architected", "engineered", "developed", "built", "implemented", "optimized", "designed", "created", "led", "managed", "reduced", "increased", "constructed", "styled", "integrated"];
+  const actionMatches = actionWords.filter((w) => text.includes(w)).length;
+  score += Math.min(13, actionMatches * 2);
 
-  const keywordsScore = keywords.length
-    ? (keywordsMatched / keywords.length) * 40
-    : 35;
+  const metricsMatches = (text.match(/\d+[\%|\+|k|m|dsa|cgpa]/g) || []).length;
+  score += Math.min(12, metricsMatches * 2.5);
 
-  return Math.max(75, Math.min(98, Math.round(mustHaveScore + keywordsScore)));
+  // 3. Target Job Description Keyword Alignment (up to 40 pts)
+  const { mustHave = [], keywords = [] } = jdAnalysis;
+  if (mustHave.length > 0 || keywords.length > 0) {
+    const mustMatched = mustHave.filter((kw) => includesKeyword(text, kw.toLowerCase())).length;
+    const keyMatched = keywords.filter((kw) => includesKeyword(text, kw.toLowerCase())).length;
+
+    const mustScore = mustHave.length ? (mustMatched / mustHave.length) * 25 : 15;
+    const keyScore = keywords.length ? (keyMatched / keywords.length) * 15 : 10;
+    score += mustScore + keyScore;
+  } else {
+    // Richness score from content depth
+    const wordCount = text.split(/\s+/).length;
+    score += Math.min(38, Math.floor(wordCount / 12));
+  }
+
+  // Generate dynamic final score (from 48 to 98)
+  return Math.max(48, Math.min(98, Math.round(score)));
 };
 
 export const extractTextFromImageOrPDF = async (fileBuffer, mimeType = "image/png") => {

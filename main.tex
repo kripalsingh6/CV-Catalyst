@@ -1,0 +1,139 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{tcolorbox}
+\usepackage{titlesec}
+
+% Define Colors
+\definecolor{brandred}{RGB}{220, 38, 38}
+\definecolor{brandorange}{RGB}{234, 88, 12}
+\definecolor{darkbg}{RGB}{15, 23, 42}
+\definecolor{codebg}{RGB}{241, 245, 249}
+
+% Setup Hyperref
+\hypersetup{
+    colorlinks=true,
+    linkcolor=brandred,
+    filecolor=brandorange,      
+    urlcolor=brandred,
+    pdftitle={CV-Catalyst Project Presentation},
+    pdfpagemode=FullScreen,
+}
+
+% Section Styling
+\titleformat{\section}{\large\bfseries\color{brandred}}{\thesection.}{0.5em}{}[\titlerule]
+\titleformat{\subsection}{\bfseries\color{darkbg}}{\thesubsection}{0.5em}{}
+
+% Listings Styling
+\lstset{
+    backgroundcolor=\color{codebg},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    captionpos=b,
+    commentstyle=\color{gray},
+    keywordstyle=\color{brandred},
+    stringstyle=\color{brandorange},
+}
+
+\title{\Huge\bfseries \color{brandred}CV-Catalyst \\ \Large AI-Powered ATS Resume Builder \& Career Suite}
+\author{\textbf{Full-Stack Engineering Showcase Document}}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{tcolorbox}[colback=brandred!5,colframe=brandred,title=\textbf{Project Overview}]
+\textbf{CV-Catalyst} is an enterprise-grade AI-powered resume building and optimization SaaS platform designed to eliminate Applicant Tracking System (ATS) rejections. Built with \textbf{React 19, Node.js, Express 5, MongoDB, and Google Gemini AI}, it automatically analyzes target Job Descriptions, rewrites resumes for maximum keyword density, computes ATS compatibility scores, and renders text-selectable A4 PDFs via server-side Puppeteer Chrome rendering.
+\end{tcolorbox}
+
+\section{Executive Overview \& Problem Statement}
+
+\subsection{The Problem}
+Modern hiring relies heavily on automated Applicant Tracking Systems (ATS) like Lever, Greenhouse, Workday, and Taleo, which automatically reject over \textbf{75\% of job applications} before a human recruiter ever sees them. Standard candidate resumes fail due to:
+\begin{itemize}[noitemsep]
+    \item Missing role-specific target keywords and competencies.
+    \item Unparseable scanned PDF or image formats.
+    \item Lack of quantifiable metrics and weak action verbs.
+    \item Non-standard visual layouts that confuse ATS screeners.
+\end{itemize}
+
+\subsection{The CV-Catalyst Solution}
+CV-Catalyst acts as an intelligent career assistant. Candidates upload their existing resume or paste text alongside a target Job Description (JD). The system extracts skills, re-engineers resume bullet points using \textbf{Google Gemini LLMs}, computes a 3-pillar ATS match score (0--100\%), and exports text-selectable, print-ready A4 PDFs.
+
+\section{Complete Tech Stack \& Skillset Matrix}
+
+\noindent
+\begin{tcolorbox}[colback=white,colframe=darkbg!80,title=\textbf{Production Tech Stack \& Skillset Breakdown},fonttitle=\bfseries]
+\small
+\begin{tabular}{llp{7.2cm}}
+\toprule
+\textbf{Domain} & \textbf{Technology / Library} & \textbf{Usage \& Key Responsibility} \\
+\midrule
+\textbf{Frontend SPA} & React 19 + Vite 8 & High-performance single page client app with fast HMR. \\
+\textbf{UI \& Styling} & TailwindCSS v4, MUI v9 & Responsive dark dashboard, live ATS score gauge, badges. \\
+\textbf{State \& Forms} & React Hook Form, Context API & Form handling, multi-step resume editor, global auth state. \\
+\textbf{Backend Gateway} & Node.js + Express 5 & RESTful API server for auth, processing, and payment flows. \\
+\textbf{Database \& ORM} & MongoDB + Mongoose v9 & Document storage for user profiles, resumes, subscriptions. \\
+\textbf{AI / LLM Service} & Google Generative AI & Multi-tier integration (Gemini 1.5 Flash, 2.0 Flash, 1.5 Pro). \\
+\textbf{Vision \& OCR} & Gemini Vision OCR API & Fallback OCR for scanned image PDFs and image uploads. \\
+\textbf{Document Parsers} & pdf-parse, mammoth & Native text parsing for standard PDF and Word (.docx) files. \\
+\textbf{PDF Engine} & Puppeteer v25 & Server-side headless Chrome rendering vector A4 PDFs. \\
+\textbf{Auth \& Security} & Passport.js, Connect-Mongo & Password hashing, session cookies, MongoDB session store. \\
+\textbf{Payment Gateway} & Razorpay SDK & Order creation, HMAC SHA256 verification, webhooks. \\
+\bottomrule
+\end{tabular}
+\end{tcolorbox}
+
+\section{How It Works (System Architecture \& Workflow)}
+
+\begin{enumerate}
+    \item \textbf{Document Ingestion \& Multi-Tier OCR}: Native text PDFs are processed via \texttt{pdf-parse}. If text is missing or under 20 characters (scanned image PDF), the system automatically routes the buffer to \textbf{Gemini Vision OCR}. Word files use \texttt{mammoth}.
+    \item \textbf{Job Description Intelligence (JD Agent)}: Extracts standardized job titles, top 20 ranked keywords, non-negotiable "must-have" skills, and expected tone.
+    \item \textbf{Contextual Optimization (Rewrite Agent)}: Combines user experience with JD context to rewrite bullet points using action verbs and quantifiable metrics.
+    \item \textbf{Algorithmic ATS Scoring}: Evaluates resumes across 3 pillars: Structure Completeness (35 pts), Action Impact (25 pts), and Keyword Alignment (40 pts).
+    \item \textbf{Server-Side PDF Rendering}: Injects structured JSON into HTML/CSS print templates (Classic, Modern, Minimal) and renders vector A4 PDFs via \textbf{Puppeteer}.
+    \item \textbf{Monetization \& Subscriptions}: User tier upgrades are processed via Razorpay with HMAC SHA256 cryptographic verification and webhooks.
+\end{enumerate}
+
+\section{Key Technical Achievements for Technical Interviews}
+
+\begin{tcolorbox}[colback=blue!5,colframe=blue!75!black,title=\textbf{1. Multi-Model LLM Resilience \& Fallback Chain}]
+Implemented a robust fallback pipeline (\texttt{gemini-1.5-flash} $\rightarrow$ \texttt{gemini-2.0-flash} $\rightarrow$ \texttt{gemini-1.5-pro} $\rightarrow$ in-house regex/heuristic parser). If Gemini API rate limits or network errors occur, the system seamlessly degrades to an internal dynamic parser, guaranteeing \textbf{100\% uptime}.
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=green!5,colframe=green!60!black,title=\textbf{2. Dual-Mode Document OCR Extraction}]
+Standard PDF parsers crash on scanned images. CV-Catalyst automatically detects empty text buffers and routes them to \textbf{Gemini Vision OCR}, extracting content accurately regardless of input format.
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=orange!5,colframe=orange!80!black,title=\textbf{3. Server-Side Headless Chrome PDF Rendering}]
+Avoided client-side canvas tools (like \texttt{html2canvas}) which create rasterized images that fail ATS parsers. Using server-side \textbf{Puppeteer}, CV-Catalyst generates 100\% text-selectable, vector A4 PDFs.
+\end{tcolorbox}
+
+\section{Repository Structure}
+
+\begin{lstlisting}[language=bash]
+CV-Catalyst/
+├── main.tex                      # Overleaf LaTeX Document Source File
+├── README.md                     # GitHub Repository Documentation
+├── PROJECT_SHOWCASE.md           # Deep-Dive Technical Showcase
+├── Backend/                      # Node.js + Express 5 Backend Gateway
+│   ├── config/ (mongodb.js, cloud.config.js)
+│   ├── Controllers/ (auth, payment, resume, jd controllers)
+│   ├── models/ (user.js, resume.js, subscription.js)
+│   ├── services/ (gemini.service.js, puppeteer.service.js)
+│   └── index.js
+└── Frontend/                     # React 19 + Vite Frontend Client
+    ├── src/ (components, context, pages, App.jsx, main.jsx)
+    └── vite.config.js
+\end{lstlisting}
+
+\section{30-Second Elevator Pitch}
+\textit{"CV-Catalyst is a full-stack SaaS career platform built with React 19, Node.js, Express, MongoDB, and Google Gemini AI. It solves the problem of automated ATS resume rejections by extracting text from resumes (including scanned image OCR), matching candidate experience against target job descriptions, calculating a realistic ATS match score, and exporting text-selectable A4 PDFs using server-side Puppeteer Chrome automation."}
+
+\end{document}

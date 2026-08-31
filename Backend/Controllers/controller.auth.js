@@ -54,21 +54,42 @@ export const login =(req, res, next) => {                          // ← wrappe
   };
 
 // GET ME
-export const getme = (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({
-      message: "Unauthorized",
-    });
-  }
+export const getme = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
-  res.json({
-    id: req.user._id,
-    name: req.user.name,
-    email: req.user.email,
-    plan: req.user.subscription, 
-    resumeCount: req.user.resumeCount,
-    createdAt: req.user.createdAt,
-  });
+    const freshUser = await User.findById(req.user._id);
+    if (!freshUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const subscription = freshUser.subscription || "free";
+
+    return res.json({
+      _id: freshUser._id,
+      id: freshUser._id,
+      name: freshUser.name,
+      email: freshUser.email,
+      subscription,
+      plan: subscription,
+      resumeCount: freshUser.resumeCount || 0,
+      createdAt: freshUser.createdAt,
+      user: {
+        _id: freshUser._id,
+        id: freshUser._id,
+        name: freshUser.name,
+        email: freshUser.email,
+        subscription,
+        plan: subscription,
+        resumeCount: freshUser.resumeCount || 0,
+        createdAt: freshUser.createdAt,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Error fetching user info", error: error.message });
+  }
 };
 
 // LOGOUT

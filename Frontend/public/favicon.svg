@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="cv-catalyst-grad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ef4444" />
+      <stop offset="100%" stop-color="#f97316" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Card -->
+  <rect width="64" height="64" rx="16" fill="url(#cv-catalyst-grad)" />
+
+  <!-- Document Body -->
+  <path d="M22 14H36L44 22V48C44 50.2091 42.2091 52 40 52H22C19.7909 52 18 50.2091 18 48V18C18 15.7909 19.7909 14 22 14Z" fill="white" />
+  
+  <!-- Folded Corner -->
+  <path d="M36 14V22H44L36 14Z" fill="#fed7aa" opacity="0.8" />
+
+  <!-- Document Content Lines -->
+  <line x1="24" y1="28" x2="38" y2="28" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round" />
+  <line x1="24" y1="34" x2="38" y2="34" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round" />
+  <line x1="24" y1="40" x2="32" y2="40" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round" />
+
+  <!-- Sparkle Accent -->
+  <path d="M48 10L49.5 14L53.5 15.5L49.5 17L48 21L46.5 17L42.5 15.5L46.5 14L48 10Z" fill="#fef08a" />
+</svg>
