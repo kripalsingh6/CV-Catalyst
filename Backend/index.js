@@ -92,7 +92,14 @@ const startServer = async () => {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Healthcheck Route for Render
+  // Root & Healthcheck Route for Render
+  app.get("/", (req, res) => {
+    res.status(200).json({
+      message: "🚀 CV-Catalyst Backend API is active",
+      frontend: clientUrl || "https://cv-catalyst-coral.vercel.app",
+      health: "/health",
+    });
+  });
   app.get("/health", (req, res) => res.status(200).json({ status: "ok", timestamp: new Date().toISOString() }));
 
   // API Routes
