@@ -6,10 +6,13 @@ import { DashboardPage } from "./pages/Dashboard";
 import { BuilderPage, BuilderRedirect } from "./pages/Builder";
 import { TemplatesPage } from "./pages/templatePage";
 import ProtectedRoute from "./components/layout/protectedRoute";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   return (
-    <Routes>
+    <>
+      <Toaster position="top-right" />
+      <Routes>
       <Route path="/" element={<DashboardPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/pricing" element={<PricingPage />} />
@@ -33,6 +36,7 @@ function App() {
         }
       />
     </Routes>
+    </>
   );
 }
 

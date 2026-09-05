@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Eye, EyeOff } from "lucide-react";
 import { API_BASE } from "../lib/axios";
+import toast, { Toaster } from "react-hot-toast";
 
 
 export function Signup() {

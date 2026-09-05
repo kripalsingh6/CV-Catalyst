@@ -42,7 +42,7 @@ import { API_BASE } from "../lib/axios";
 
 
 export function DashboardPage() {
-  const { User } = useAuth();
+  const { User, Loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -94,6 +94,12 @@ export function DashboardPage() {
   const handleExtractFileText = async (file) => {
     if (!file) return;
 
+    if (!User) {
+      toast.error("Please sign in to extract resume files");
+      navigate("/login");
+      return;
+    }
+
     const allowedTypes = ["pdf"];
     const ext = file.name.split(".").pop().toLowerCase();
     if (!allowedTypes.includes(ext)) {
@@ -140,6 +146,11 @@ export function DashboardPage() {
 
   // Fetch all resumes
   const fetchResumes = async () => {
+    if (!User) {
+      setResumes([]);
+      setLoadingResumes(false);
+      return;
+    }
     try {
       setLoadingResumes(true);
       const { data } = await axios.get(`${API_BASE}/api/resume`, {
@@ -147,7 +158,9 @@ export function DashboardPage() {
       });
       setResumes(data.resumes || []);
     } catch (err) {
-      console.error("Error fetching resumes:", err);
+      if (err.response?.status !== 401) {
+        console.error("Error fetching resumes:", err);
+      }
       setResumes([]);
     } finally {
       setLoadingResumes(false);
@@ -156,12 +169,24 @@ export function DashboardPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    fetchResumes();
-  }, []);
+    if (!Loading) {
+      if (User) {
+        fetchResumes();
+      } else {
+        setResumes([]);
+        setLoadingResumes(false);
+      }
+    }
+  }, [User, Loading]);
 
   // Handle Create Resume
   const handleCreateResume = async (e) => {
     e.preventDefault();
+    if (!User) {
+      toast.error("Please sign in to create and save resumes");
+      navigate("/login");
+      return;
+    }
     if (!newTitle.trim()) {
       toast.error("Please enter a resume title");
       return;
