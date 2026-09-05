@@ -8,7 +8,8 @@ from '../Controllers/controller.auth.js';
 import auth, { savedRedirectUrl } 
 from "../middleware/middleware.auth.js";
 
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+const CLIENT_URL = (process.env.CLIENT_URL || "http://localhost:5173").replace(/\/$/, "");
+
 
 // --- Google OAuth Routes ---
 router.get(

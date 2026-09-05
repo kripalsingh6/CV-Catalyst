@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useAuth } from "../context/authContext.jsx";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import toast, { Toaster } from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
+import { API_BASE } from "../lib/axios";
+
 
 export function Signup() {
   const { Signup } = useAuth();
@@ -37,11 +38,11 @@ export function Signup() {
   };
 
   const handleGoogleSignup = () => {
-    window.location.href = "http://localhost:3000/api/auth/google";
+    window.location.href = `${API_BASE}/api/auth/google`;
   };
 
   const handleGithubSignup = () => {
-    window.location.href = "http://localhost:3000/api/auth/github";
+    window.location.href = `${API_BASE}/api/auth/github`;
   };
 
   return (

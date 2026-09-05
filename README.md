@@ -24,7 +24,7 @@ CV-Catalyst solves this problem by using Google Gemini AI models to analyze targ
 | **Computer Vision / OCR** | `Gemini Vision API` | Fallback OCR for extracting text from scanned PDF documents and image formats (`.png`, `.jpg`, `.jpeg`, `.webp`) |
 | **Document Parsing** | `pdf-parse`, `mammoth` | Native parsing of raw text from standard PDF and Microsoft Word (`.docx`) files |
 | **PDF Rendering Engine** | `Puppeteer v25` | Server-side headless Chrome execution rendering pixel-perfect A4 PDFs from custom HTML/CSS templates |
-| **Auth & Security** | `Passport.js`, `passport-local-mongoose`, `express-session`, `connect-mongo` | Secure email/password auth, HTTP-only session cookies, MongoDB session store |
+| **Auth & Security** | `OAuth 2.0` (`passport-google-oauth20`, `passport-github2`), `Passport.js`, `passport-local-mongoose`, `express-session`, `connect-mongo` | Multi-provider OAuth 2.0 (Google & GitHub SSO), automated account linking, email/password fallback, HTTP-only session cookies |
 | **Payment Gateway** | `Razorpay SDK` (`razorpay`) | Subscription order creation, HMAC SHA256 signature verification, webhook processing |
 | **File Storage / Upload** | `Multer` + `Cloudinary` | Multipart file upload management and cloud media hosting |
 

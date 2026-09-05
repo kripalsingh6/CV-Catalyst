@@ -12,8 +12,8 @@ import JDInput from "../components/resume/JDInput";
 import KeywordBadges from "../components/resume/KeywordBadges";
 import ResumeEditor from "../components/resume/ResumeEditor";
 import ATSScoreRing from "../components/resume/ATSScoreRing";
+import { API_BASE } from "../lib/axios";
 
-const API_BASE = "http://localhost:3000";
 
 export function BuilderPage() {
   const { id } = useParams();

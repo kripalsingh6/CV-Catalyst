@@ -6,8 +6,8 @@ import { Check, X, FileText, Users, Sparkles, Loader2, Crown, Zap, ShieldCheck }
 import axios from "axios";
 import Header from "./header";
 import { Footer } from "./footer";
+import { API_BASE } from "../lib/axios";
 
-const API_BASE = "http://localhost:3000";
 
 const FREE_FEATURES = [
   { label: "5 resume generations / month", on: true },

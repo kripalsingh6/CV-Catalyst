@@ -1,8 +1,10 @@
 /* eslint-disable react-refresh/only-export-components */
 import axios from 'axios';
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { API_BASE } from '../lib/axios';
 
-const api = "http://localhost:3000";
+const api = API_BASE;
+
 
 const AuthContext = createContext(null);
 

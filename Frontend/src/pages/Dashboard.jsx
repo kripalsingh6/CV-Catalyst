@@ -38,8 +38,8 @@ import {
 import ATSScoreRing from "../components/resume/ATSScoreRing";
 import KeywordBadges from "../components/resume/KeywordBadges";
 import ResumeEditor from "../components/resume/ResumeEditor";
+import { API_BASE } from "../lib/axios";
 
-const API_BASE = "http://localhost:3000";
 
 export function DashboardPage() {
   const { User } = useAuth();

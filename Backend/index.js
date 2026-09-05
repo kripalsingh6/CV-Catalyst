@@ -20,11 +20,37 @@ import resumeRoutes from "./routes/route.resume.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
+const isProduction = process.env.NODE_ENV === "production";
 
-// CORS
+// Enable trust proxy for Render reverse proxy (required for secure cookies)
+if (isProduction) {
+  app.set("trust proxy", 1);
+}
+
+// CORS setup supporting Vercel deployments and local development
+const clientUrl = process.env.CLIENT_URL ? process.env.CLIENT_URL.replace(/\/$/, "") : null;
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:3000",
+  clientUrl,
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, or server-to-server)
+      if (!origin) return callback(null, true);
+
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".vercel.app") ||
+        !isProduction
+      ) {
+        return callback(null, true);
+      }
+      return callback(new Error(`Origin ${origin} not allowed by CORS`));
+    },
     credentials: true,
   })
 );
@@ -52,10 +78,11 @@ const startServer = async () => {
       resave: false,
       saveUninitialized: false,
       store: sessionStore,
+      proxy: isProduction,
       cookie: {
         httpOnly: true,
-        secure: false, // Set to true in production with HTTPS
-        sameSite: "lax",
+        secure: isProduction, // Must be true with HTTPS in production
+        sameSite: isProduction ? "none" : "lax", // Cross-site cookie between Vercel & Render
         maxAge: 7 * 24 * 60 * 60 * 1000,
       },
     })
@@ -64,6 +91,9 @@ const startServer = async () => {
   // Passport middleware (MUST come after session middleware)
   app.use(passport.initialize());
   app.use(passport.session());
+
+  // Healthcheck Route for Render
+  app.get("/health", (req, res) => res.status(200).json({ status: "ok", timestamp: new Date().toISOString() }));
 
   // API Routes
   app.get("/api/home", (req, res) => res.send("welcome to home"));
