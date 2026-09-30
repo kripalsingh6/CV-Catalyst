@@ -71,7 +71,7 @@ const ResumeUploader = ({ resumeId, onUploadSuccess, initialText }) => {
       {/* Header */}
       <div className="border-b border-white/5 bg-[#1A1A24] px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <h3 className="text-lg font-bold text-white flex items-center">
-          <FileText className="w-5 h-5 mr-2 text-violet-400" />
+          <FileText className="w-5 h-5 mr-2 text-orange-400" />
           Step 1: Provide Resume
         </h3>
         <div className="flex bg-[#0A0A0F] rounded-lg p-1 border border-white/5">
@@ -79,8 +79,10 @@ const ResumeUploader = ({ resumeId, onUploadSuccess, initialText }) => {
             <button
               key={key}
               onClick={() => setMode(key)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                mode === key ? 'bg-violet-600 text-white' : 'text-gray-400 hover:text-white'
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                mode === key
+                  ? 'bg-gradient-to-r from-red-600 to-orange-500 text-white shadow-md shadow-red-500/20 font-semibold'
+                  : 'text-gray-400 hover:text-white'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -96,20 +98,22 @@ const ResumeUploader = ({ resumeId, onUploadSuccess, initialText }) => {
           <div
             {...getPDFRootProps()}
             className={`border-2 border-dashed rounded-xl p-10 text-center transition-all cursor-pointer ${
-              isPDFDragActive ? 'border-violet-500 bg-violet-500/5' : 'border-white/10 hover:border-violet-500/50 hover:bg-white/5'
+              isPDFDragActive
+                ? 'border-orange-500 bg-orange-500/5'
+                : 'border-white/10 hover:border-orange-500/50 hover:bg-white/5'
             }`}
           >
             <input {...getPDFInputProps()} />
             {isUploading ? (
               <div className="flex flex-col items-center">
-                <Loader2 className="w-10 h-10 text-violet-500 animate-spin mb-4" />
+                <Loader2 className="w-10 h-10 text-orange-500 animate-spin mb-4" />
                 <p className="text-white font-medium">Parsing your PDF...</p>
                 <p className="text-gray-400 text-sm mt-1">Extracting text from PDF document</p>
               </div>
             ) : (
               <div className="flex flex-col items-center">
                 <div className="w-16 h-16 bg-[#0A0A0F] rounded-full flex items-center justify-center mb-4 border border-white/5 shadow-inner">
-                  <UploadCloud className="w-8 h-8 text-violet-400" />
+                  <UploadCloud className="w-8 h-8 text-orange-400" />
                 </div>
                 <p className="text-white font-medium text-lg mb-1">
                   {isPDFDragActive ? 'Drop your PDF here' : 'Click or drag PDF to upload'}
@@ -130,16 +134,16 @@ const ResumeUploader = ({ resumeId, onUploadSuccess, initialText }) => {
               value={rawText}
               onChange={(e) => setRawText(e.target.value)}
               placeholder="Paste your plain text resume here..."
-              className="flex-1 w-full bg-[#0A0A0F] border border-white/10 rounded-xl p-4 text-gray-300 focus:outline-none focus:ring-2 focus:ring-violet-500/50 resize-none font-mono text-sm leading-relaxed"
+              className="flex-1 w-full bg-[#0A0A0F] border border-white/10 rounded-xl p-4 text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500/50 resize-none font-mono text-sm leading-relaxed"
               disabled={isUploading}
             />
             <div className="mt-4 flex justify-end">
               <button
                 onClick={handlePasteSubmit}
                 disabled={isUploading || !rawText.trim()}
-                className="flex items-center px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+                className="flex items-center px-5 py-2.5 bg-gradient-to-r from-red-600 to-orange-500 hover:opacity-90 text-white font-medium rounded-lg transition-colors disabled:opacity-50 shadow-lg shadow-red-500/20 cursor-pointer active:scale-95"
               >
-                {isUploading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {isUploading && <Loader2 className="w-4 h-4 mr-2 animate-spin text-white" />}
                 Save Resume Text
               </button>
             </div>

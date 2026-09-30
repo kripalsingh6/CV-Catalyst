@@ -20,7 +20,7 @@ const getRazorpayInstance = () => {
 
 const PLAN_AMOUNTS = {
   monthly: 100, // ₹1 in paise (100 paise)
-  yearly: 419900, // ₹4,199 in paise
+  yearly: 419900, // ₹4,199 in paisa
 };
 
 // ─────────────────────────────────────────────

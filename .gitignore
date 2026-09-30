@@ -26,3 +26,8 @@ build/
 Thumbs.db
 .vscode/
 .idea/
+
+# Scratch & local test files
+scratch/
+Backend/test_*.js
+

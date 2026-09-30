@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Loader2, Wand2, Download, AlertCircle, Layout, ArrowLeft, Sparkles } from "lucide-react";
+import { Loader2, Wand2, Download, AlertCircle, Layout, ArrowLeft, Printer } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
 import { useAuth } from "../context/authContext";
@@ -106,21 +106,37 @@ export function BuilderPage() {
       toast.loading(`Generating ${selectedTemplate.toUpperCase()} single-page PDF...`, { id: "pdf-toast" });
       const response = await axios.post(
         `${API_BASE}/api/resume/${id}/export-pdf?template=${selectedTemplate}`,
-        { template: selectedTemplate },
+        {
+          template: selectedTemplate,
+          rewrittenData: resume?.rewrittenData || {
+            name: User?.name || resume?.title || "Kripal Singh Thakur",
+            rawText: resume?.rawText || "",
+          },
+        },
         { responseType: "blob", withCredentials: true }
       );
       const url = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `${(resume.title || "Resume").replace(/\s+/g, "_")}_${selectedTemplate}.pdf`);
+      link.setAttribute("download", `${(resume?.title || "Resume").replace(/\s+/g, "_")}_${selectedTemplate}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
       toast.success("Single-page PDF downloaded successfully!", { id: "pdf-toast" });
     } catch (err) {
       console.error("PDF Export error:", err);
-      toast.error("Puppeteer PDF generation failed. Printing current layout...", { id: "pdf-toast" });
-      window.print();
+      let errorMsg = "Failed to generate single-page PDF. Please try again.";
+      if (err.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const json = JSON.parse(text);
+          if (json.message) errorMsg = json.message;
+        } catch {}
+      } else if (err.response?.data?.message) {
+        errorMsg = err.response.data.message;
+      }
+      toast.error(errorMsg, { id: "pdf-toast" });
     }
   };
 
@@ -203,9 +219,19 @@ export function BuilderPage() {
             <button
               onClick={handleExportPDF}
               className="px-4 py-2.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white text-xs font-semibold rounded-xl flex items-center gap-2 transition cursor-pointer shadow-sm"
+              title="Download 1-Page ATS-Optimized PDF"
             >
               <Download className="w-4 h-4 text-gray-300" />
-              Export PDF / Print
+              Export PDF
+            </button>
+
+            <button
+              onClick={() => window.print()}
+              className="px-4 py-2.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white text-xs font-semibold rounded-xl flex items-center gap-2 transition cursor-pointer shadow-sm"
+              title="Print Resume or Save as PDF via browser"
+            >
+              <Printer className="w-4 h-4 text-gray-300" />
+              Print
             </button>
 
             <button
@@ -241,19 +267,21 @@ export function BuilderPage() {
               }}
             />
 
-            {hasRawText && (
-              <JDInput
-                resumeId={id}
-                initialJd={resume.jobDescription}
-                onAnalysisComplete={(analysis) => {
-                  setResume((prev) => ({
-                    ...prev,
-                    jdAnalysis: analysis,
-                    status: "analyzed",
-                  }));
-                }}
-              />
-            )}
+            <JDInput
+              resumeId={id}
+              initialJd={resume.jobDescription}
+              resume={resume}
+              onResumeUpdated={(updatedResume) => {
+                setResume(updatedResume);
+              }}
+              onAnalysisComplete={(analysis) => {
+                setResume((prev) => ({
+                  ...prev,
+                  jdAnalysis: analysis,
+                  status: "analyzed",
+                }));
+              }}
+            />
 
             {hasJdAnalysis && (
               <KeywordBadges analysis={resume.jdAnalysis} />
@@ -271,28 +299,6 @@ export function BuilderPage() {
           {/* Right Column: Results & Preview */}
           <div className="lg:col-span-6 space-y-6">
             <div className="space-y-6">
-
-              {/* Top Download Option Bar in Rewrite / Preview Section */}
-              {hasRewrittenData && (
-                <div className="bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-blue-500/10 border border-emerald-500/20 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg animate-in fade-in duration-300">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                      <Sparkles className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-white uppercase tracking-wider">AI Rewritten Resume Ready</h4>
-                      <p className="text-[11px] text-gray-400">Generated using <span className="capitalize text-emerald-400 font-bold">{selectedTemplate}</span> template format</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleExportPDF}
-                    className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-500 hover:opacity-90 text-white text-xs font-bold rounded-xl flex items-center gap-2 transition shadow-md shadow-emerald-500/20 cursor-pointer active:scale-95 whitespace-nowrap"
-                  >
-                    <Download className="w-4 h-4" />
-                    Download {selectedTemplate.toUpperCase()} PDF
-                  </button>
-                </div>
-              )}
 
               {/* Score & Template Bar */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">

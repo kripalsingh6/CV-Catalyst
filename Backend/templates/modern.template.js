@@ -1,44 +1,13 @@
-const formatSkillsCategories = (skillsInput) => {
-  let lines = [];
-  if (Array.isArray(skillsInput)) {
-    lines = skillsInput.flatMap((s) => (typeof s === "string" ? s.split("\n") : [s]));
-  } else if (typeof skillsInput === "string") {
-    lines = skillsInput.split("\n");
-  }
+import {
+  formatSkillsCategories,
+  sanitizeResumeData,
+  ensureThreeToFourPoints,
+  normalizeProjectForRender,
+  DEFAULT_PROJECTS,
+} from "../utils/sanitize-resume.js";
 
-  const categories = [];
-  let currentCat = null;
-
-  for (const line of lines) {
-    const trimmed = (line || "").trim();
-    if (!trimmed) continue;
-
-    if (trimmed.includes(":")) {
-      if (currentCat) categories.push(currentCat);
-      const [catName, ...valParts] = trimmed.split(":");
-      currentCat = {
-        name: catName.trim(),
-        items: valParts.join(":").split(",").map((i) => i.trim()).filter(Boolean),
-      };
-    } else if (currentCat) {
-      const items = trimmed.split(",").map((i) => i.trim()).filter(Boolean);
-      currentCat.items.push(...items);
-    } else {
-      if (!currentCat) currentCat = { name: "Core Skills", items: [] };
-      const items = trimmed.split(",").map((i) => i.trim()).filter(Boolean);
-      currentCat.items.push(...items);
-    }
-  }
-  if (currentCat) categories.push(currentCat);
-
-  if (categories.length === 0) {
-    return [{ name: "Core Skills", items: lines.map((l) => l.trim()).filter(Boolean) }];
-  }
-
-  return categories;
-};
-
-export const modernTemplate = (data = {}) => {
+export const modernTemplate = (rawInput = {}) => {
+  const data = sanitizeResumeData(rawInput);
   const {
     name = "Kripal Singh Thakur",
     email = "thakurkripalsingh6@gmail.com",
@@ -48,47 +17,55 @@ export const modernTemplate = (data = {}) => {
     github = "github.com/kripal-singh",
     leetcode = "",
     geeksforgeeks = "",
+    portfolio = "",
     summary = "",
     education = [],
     skills = [],
     experience = [],
     achievements = [],
-  } = data || {};
+  } = data;
 
-  /* ── EXPERIENCE / PROJECTS ─────────────────────────────────────────── */
-  const expHtml = (experience || [])
-    .map((exp) => {
-      const titleStr = exp.company || exp.title || "Project";
-      const subtitleStr =
-        exp.title && exp.company && exp.title !== exp.company ? exp.title : "";
-      const dateStr =
-        (exp.startDate || "") + (exp.endDate ? " – " + exp.endDate : "");
+  /* ── PROJECTS / EXPERIENCE ── */
+  const rawExperience = experience && experience.length > 0 ? experience : DEFAULT_PROJECTS;
+  const projectsToDisplay = rawExperience.length > 4 ? rawExperience.slice(0, 4) : rawExperience;
+  const count = projectsToDisplay.length;
 
-      const bulletsHtml = (exp.bullets || [])
-        .map(
-          (b) =>
-            `<li style="margin-bottom:2px;line-height:1.35;font-size:9.5px;">${b}</li>`
-        )
-        .join("");
+  let projectFontSize = "9.5px";
+  let projectLineHeight = "1.38";
+  let projectMarginBottom = "7px";
+  let maxPoints = 4;
 
-      return `
-<div style="margin-bottom:8px;">
-  <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:10px;line-height:1.3;">
-    <span style="font-weight:700;color:#0f172a;">${titleStr}${
-        subtitleStr ? `<span style="font-weight:400;color:#475569;"> – ${subtitleStr}</span>` : ""
-      }</span>
-    <span style="font-size:8.5px;color:#64748b;white-space:nowrap;margin-left:6px;">${dateStr}</span>
-  </div>
-  ${
-    bulletsHtml
-      ? `<ul style="margin:2px 0 0 14px;padding:0;color:#334155;list-style-type:disc;">${bulletsHtml}</ul>`
-      : ""
+  if (count === 3) {
+    projectFontSize = "9px";
+    projectLineHeight = "1.34";
+    projectMarginBottom = "5px";
+    maxPoints = 4;
+  } else if (count >= 4) {
+    projectFontSize = "8.5px";
+    projectLineHeight = "1.28";
+    projectMarginBottom = "4px";
+    maxPoints = 3;
+  } else {
+    projectFontSize = "9.5px";
+    projectLineHeight = "1.38";
+    projectMarginBottom = "7px";
+    maxPoints = 4;
   }
-</div>`;
-    })
-    .join("");
 
-  /* ── EDUCATION ──────────────────────────────────────────────────────── */
+  const expItems = projectsToDisplay.map((exp) => {
+    const { titleStr, bodyText } = normalizeProjectForRender(exp, maxPoints);
+
+    return `
+<li style="margin-bottom:${projectMarginBottom};font-size:${projectFontSize};line-height:${projectLineHeight};color:#334155;text-align:justify;">
+  <strong style="color:#0f172a;font-weight:700;">${titleStr}</strong>${bodyText ? `, ${bodyText}` : ""}
+</li>`;
+  }).join("");
+
+  const expHtml = expItems
+    ? `<ul style="margin:2px 0 6px 14px;padding:0;color:#334155;list-style-type:disc;">${expItems}</ul>`
+    : "";
+
+  /* ── EDUCATION ── */
   const eduHtml = (education || [])
     .map((edu) => {
       const inst = edu.institution || "";
@@ -106,26 +83,23 @@ export const modernTemplate = (data = {}) => {
     <span style="font-weight:700;color:#0f172a;">${inst}</span>
     <span style="font-size:8.5px;color:#64748b;">${edu.location || ""}</span>
   </div>
-  ${
-    degreeText
-      ? `<div style="display:flex;justify-content:space-between;align-items:baseline;font-style:italic;font-size:9px;color:#475569;margin-top:1px;">
+  ${degreeText
+          ? `<div style="display:flex;justify-content:space-between;align-items:baseline;font-style:italic;font-size:9px;color:#475569;margin-top:1px;">
     <span>${degreeText}</span>
     <span style="white-space:nowrap;">${dateStr}</span>
   </div>`
-      : ""
-  }
-  ${
-    gpa
-      ? `<div style="font-size:8.5px;color:#475569;margin-top:1px;">• ${
-          gpa.startsWith("•") ? gpa.replace(/^•\s*/, "") : gpa
-        }</div>`
-      : ""
-  }
+          : ""
+        }
+  ${gpa
+          ? `<div style="font-size:8.5px;color:#475569;margin-top:1px;">• ${gpa.startsWith("•") ? gpa.replace(/^•\s*/, "") : gpa
+          }</div>`
+          : ""
+        }
 </div>`;
     })
     .join("");
 
-  /* ── ACHIEVEMENTS ───────────────────────────────────────────────────── */
+  /* ── ACHIEVEMENTS ── */
   const achievementsHtml = (achievements || [])
     .map((ach) => {
       const text = typeof ach === "string" ? ach : ach.text || "";
@@ -139,7 +113,7 @@ export const modernTemplate = (data = {}) => {
     })
     .join("");
 
-  /* ── SIDEBAR SKILLS ─────────────────────────────────────────────────── */
+  /* ── SIDEBAR SKILLS ── */
   const parsedCategories = formatSkillsCategories(skills);
   const sidebarSkillsHtml = parsedCategories
     .map((cat) => {
@@ -157,7 +131,7 @@ export const modernTemplate = (data = {}) => {
     })
     .join("");
 
-  /* ── SIDEBAR CONTACT LINKS ──────────────────────────────────────────── */
+  /* ── SIDEBAR CONTACT LINKS ── */
   const contactItems = [
     email ? `<div style="margin-bottom:4px;font-size:9px;color:#cbd5e1;word-break:break-all;">✉ ${email}</div>` : "",
     phone ? `<div style="margin-bottom:4px;font-size:9px;color:#cbd5e1;">📱 ${phone}</div>` : "",
@@ -166,6 +140,7 @@ export const modernTemplate = (data = {}) => {
     github ? `<div style="margin-bottom:4px;font-size:9px;color:#cbd5e1;"><a href="${github.startsWith("http") ? github : "https://" + github}" style="color:#cbd5e1;text-decoration:underline;">GitHub</a></div>` : "",
     leetcode ? `<div style="margin-bottom:4px;font-size:9px;color:#cbd5e1;"><a href="${leetcode.startsWith("http") ? leetcode : "https://" + leetcode}" style="color:#cbd5e1;text-decoration:underline;">LeetCode</a></div>` : "",
     geeksforgeeks ? `<div style="margin-bottom:4px;font-size:9px;color:#cbd5e1;"><a href="${geeksforgeeks.startsWith("http") ? geeksforgeeks : "https://" + geeksforgeeks}" style="color:#cbd5e1;text-decoration:underline;">GeeksforGeeks</a></div>` : "",
+    portfolio ? `<div style="margin-bottom:4px;font-size:9px;color:#cbd5e1;"><a href="${portfolio.startsWith("http") ? portfolio : "https://" + portfolio}" style="color:#cbd5e1;text-decoration:underline;">Portfolio</a></div>` : "",
   ].filter(Boolean).join("");
 
   return `<!DOCTYPE html>
@@ -281,7 +256,7 @@ export const modernTemplate = (data = {}) => {
     <td class="content">
       ${summary ? `<div class="main-header">Profile Summary</div><p style="font-size:9.5px;line-height:1.4;color:#334155;text-align:justify;margin-bottom:8px;">${summary}</p>` : ""}
 
-      ${expHtml ? `<div class="main-header">Experience &amp; Projects</div>${expHtml}` : ""}
+      ${expHtml ? `<div class="main-header">Projects</div>${expHtml}` : ""}
 
       ${eduHtml ? `<div class="main-header">Education</div>${eduHtml}` : ""}
 

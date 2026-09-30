@@ -1,47 +1,12 @@
-const formatCategorizedSkills = (skillsInput) => {
-  let lines = [];
-  if (Array.isArray(skillsInput)) {
-    lines = skillsInput.flatMap((s) => (typeof s === "string" ? s.split("\n") : [s]));
-  } else if (typeof skillsInput === "string") {
-    lines = skillsInput.split("\n");
-  }
+import {
+  formatSkillsCategories,
+  sanitizeResumeData,
+  normalizeProjectForRender,
+  DEFAULT_PROJECTS,
+} from "../utils/sanitize-resume.js";
 
-  const categories = [];
-  let currentCat = null;
-
-  for (const line of lines) {
-    const trimmed = (line || "").trim();
-    if (!trimmed) continue;
-
-    if (trimmed.includes(":")) {
-      if (currentCat) categories.push(currentCat);
-      const [catName, ...valParts] = trimmed.split(":");
-      currentCat = {
-        name: catName.trim(),
-        items: valParts.join(":").split(",").map((i) => i.trim()).filter(Boolean),
-      };
-    } else if (currentCat) {
-      const items = trimmed.split(",").map((i) => i.trim()).filter(Boolean);
-      currentCat.items.push(...items);
-    } else {
-      if (!currentCat) currentCat = { name: "Core Skills", items: [] };
-      const items = trimmed.split(",").map((i) => i.trim()).filter(Boolean);
-      currentCat.items.push(...items);
-    }
-  }
-  if (currentCat) categories.push(currentCat);
-
-  if (categories.length === 0) {
-    return [{ name: "Core Skills", items: lines.map((l) => l.trim()).filter(Boolean) }];
-  }
-
-  return categories.map((cat) => ({
-    name: cat.name,
-    items: Array.from(new Set(cat.items)),
-  }));
-};
-
-export const classicTemplate = (data = {}) => {
+export const classicTemplate = (rawInput = {}) => {
+  const data = sanitizeResumeData(rawInput);
   const {
     name = "Kripal Singh Thakur",
     email = "thakurkripalsingh6@gmail.com",
@@ -51,60 +16,55 @@ export const classicTemplate = (data = {}) => {
     github = "github.com/kripal-singh",
     leetcode = "",
     geeksforgeeks = "",
+    portfolio = "",
     summary = "",
     education = [],
     skills = [],
     experience = [],
     achievements = [],
-  } = data || {};
+  } = data;
 
-  /* ── PROJECTS / EXPERIENCE ─────────────────────────────────────────── */
-  const deduplicatedExperience = (experience || []).map((exp) => {
-    const uniqueBullets = Array.from(
-      new Set((exp.bullets || []).map((b) => b.trim()))
-    ).filter(Boolean);
-    return { ...exp, bullets: uniqueBullets };
-  });
+  /* ── PROJECTS / EXPERIENCE ── */
+  const rawExperience = experience && experience.length > 0 ? experience : DEFAULT_PROJECTS;
+  const projectsToDisplay = rawExperience.length > 4 ? rawExperience.slice(0, 4) : rawExperience;
+  const count = projectsToDisplay.length;
 
-  const expHtml = deduplicatedExperience
-    .map((exp) => {
-      const titleLine = [
-        exp.company || exp.title || "",
-        exp.title && exp.company && exp.title !== exp.company
-          ? `<span style="font-weight:normal;"> \u2013 ${exp.title}</span>`
-          : "",
-        exp.subtitle
-          ? ` | <i style="font-weight:normal;color:#000;">${exp.subtitle}</i>`
-          : "",
-      ].join("");
+  let projectFontSize = "10px";
+  let projectLineHeight = "1.4";
+  let projectMarginBottom = "7px";
+  let maxPoints = 4;
 
-      const dateStr =
-        (exp.startDate || "") +
-        (exp.endDate ? " \u2013 " + exp.endDate : "");
-
-      const bulletsHtml = (exp.bullets || [])
-        .map(
-          (b) =>
-            `<li style="margin-bottom:2px;line-height:1.35;font-size:10px;">${b}</li>`
-        )
-        .join("");
-
-      return `
-<div style="margin-bottom:7px;">
-  <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:10.5px;line-height:1.4;">
-    <span style="font-weight:bold;">${titleLine}</span>
-    <span style="font-style:italic;font-weight:normal;white-space:nowrap;margin-left:8px;font-size:10px;">${dateStr}</span>
-  </div>
-  ${
-    bulletsHtml
-      ? `<ul style="margin:2px 0 0 18px;padding:0;list-style-type:disc;">${bulletsHtml}</ul>`
-      : ""
+  if (count === 3) {
+    projectFontSize = "9.5px";
+    projectLineHeight = "1.34";
+    projectMarginBottom = "5px";
+    maxPoints = 4;
+  } else if (count >= 4) {
+    projectFontSize = "8.5px";
+    projectLineHeight = "1.28";
+    projectMarginBottom = "4px";
+    maxPoints = 3;
+  } else {
+    projectFontSize = "10px";
+    projectLineHeight = "1.4";
+    projectMarginBottom = "7px";
+    maxPoints = 4;
   }
-</div>`;
-    })
-    .join("");
 
-  /* ── EDUCATION ──────────────────────────────────────────────────────── */
+  const expItems = projectsToDisplay.map((exp) => {
+    const { titleStr, bodyText } = normalizeProjectForRender(exp, maxPoints);
+
+    return `
+<li style="margin-bottom:${projectMarginBottom};font-size:${projectFontSize};line-height:${projectLineHeight};text-align:justify;">
+  <b style="font-weight:bold;">${titleStr}</b>${bodyText ? `, ${bodyText}` : ""}
+</li>`;
+  }).join("");
+
+  const expHtml = expItems
+    ? `<ul style="margin:2px 0 6px 18px;padding:0;list-style-type:disc;">${expItems}</ul>`
+    : "";
+
+  /* ── EDUCATION ── */
   const uniqueEducation = Array.from(
     new Set((education || []).map((e) => JSON.stringify(e)))
   ).map((s) => JSON.parse(s));
@@ -122,16 +82,21 @@ export const classicTemplate = (data = {}) => {
         ? `${edu.degree}${edu.field ? " \u2013 " + edu.field : ""}`
         : "";
 
-    const dateStr =
-      (edu.startDate || "") + (edu.endDate ? " \u2013 " + edu.endDate : "");
+    const startD = (edu.startDate || "").replace(/^[\s—–-]+|[\s—–-]+$/g, "").trim();
+    const endD = (edu.endDate || "").replace(/^[\s—–-]+|[\s—–-]+$/g, "").trim();
+    const dateStr = startD && endD ? `${startD} \u2013 ${endD}` : (startD || endD || "");
 
     // GPA / Status bullet
-    const rawGpa = (edu.gpa || "").trim();
+    const rawGpa = (edu.gpa || "")
+      .replace(/\$/g, "")
+      .replace(/\s*\|\s*/g, " | ")
+      .replace(/^•\s*/, "")
+      .replace(/^Status:\s*/i, "Status: ")
+      .replace(/\s{2,}/g, " ")
+      .trim();
     let gpaBullet = "";
     if (rawGpa) {
-      gpaBullet = rawGpa.startsWith("\u2022")
-        ? rawGpa
-        : `\u2022 ${rawGpa}`;
+      gpaBullet = `\u2022 ${rawGpa}`;
     }
 
     if (!isSame) {
@@ -142,28 +107,26 @@ export const classicTemplate = (data = {}) => {
     <span style="font-weight:bold;">${instName}</span>
     <span style="font-weight:normal;font-style:normal;white-space:nowrap;margin-left:8px;font-size:10px;">${edu.location || ""}</span>
   </div>
-  ${
-    degreeText
-      ? `<div style="display:flex;justify-content:space-between;align-items:baseline;font-style:italic;font-size:10px;line-height:1.3;">
+  ${degreeText
+          ? `<div style="display:flex;justify-content:space-between;align-items:baseline;font-style:italic;font-size:10px;line-height:1.3;">
     <span>${degreeText}</span>
     <span style="white-space:nowrap;margin-left:8px;">${dateStr}</span>
   </div>`
-      : ""
-  }
+          : ""
+        }
   ${gpaBullet ? `<div style="font-size:10px;line-height:1.3;margin-top:1px;">${gpaBullet}</div>` : ""}
 </div>`);
     } else {
       // Same institution — only show degree row (no repeated bold header)
       eduHtmlList.push(`
 <div style="margin-bottom:4px;margin-top:-1px;">
-  ${
-    degreeText
-      ? `<div style="display:flex;justify-content:space-between;align-items:baseline;font-style:italic;font-size:10px;line-height:1.3;">
+  ${degreeText
+          ? `<div style="display:flex;justify-content:space-between;align-items:baseline;font-style:italic;font-size:10px;line-height:1.3;">
     <span>${degreeText}</span>
     <span style="white-space:nowrap;margin-left:8px;">${dateStr}</span>
   </div>`
-      : ""
-  }
+          : ""
+        }
   ${gpaBullet ? `<div style="font-size:10px;line-height:1.3;margin-top:1px;">${gpaBullet}</div>` : ""}
 </div>`);
     }
@@ -171,8 +134,8 @@ export const classicTemplate = (data = {}) => {
 
   const eduHtml = eduHtmlList.join("");
 
-  /* ── SKILLS ─────────────────────────────────────────────────────────── */
-  const parsedCategories = formatCategorizedSkills(skills);
+  /* ── SKILLS ── */
+  const parsedCategories = formatSkillsCategories(skills);
   const skillsHtml = parsedCategories
     .map(
       (cat) =>
@@ -180,7 +143,7 @@ export const classicTemplate = (data = {}) => {
     )
     .join("");
 
-  /* ── ACHIEVEMENTS ───────────────────────────────────────────────────── */
+  /* ── ACHIEVEMENTS ── */
   const achievementsHtml = (achievements || [])
     .map((ach) => {
       const text = typeof ach === "string" ? ach : ach.text || "";
@@ -197,7 +160,7 @@ export const classicTemplate = (data = {}) => {
     })
     .join("");
 
-  /* ── LINKS BAR ───────────────────────────────────────────────────────── */
+  /* ── LINKS BAR ── */
   const linkEntries = [];
   if (linkedin) {
     const href = linkedin.startsWith("http") ? linkedin : "https://" + linkedin;
@@ -207,24 +170,22 @@ export const classicTemplate = (data = {}) => {
     const href = github.startsWith("http") ? github : "https://" + github;
     linkEntries.push(`<a href="${href}">GitHub</a>`);
   }
-  // LeetCode
   if (leetcode) {
     const href = leetcode.startsWith("http") ? leetcode : "https://" + leetcode;
     linkEntries.push(`<a href="${href}">LeetCode</a>`);
-  } else {
-    linkEntries.push(`<a href="https://leetcode.com">LeetCode</a>`);
   }
-  // GeeksforGeeks
   if (geeksforgeeks) {
     const href = geeksforgeeks.startsWith("http") ? geeksforgeeks : "https://" + geeksforgeeks;
     linkEntries.push(`<a href="${href}">GeeksforGeeks</a>`);
-  } else {
-    linkEntries.push(`<a href="https://geeksforgeeks.org">GeeksforGeeks</a>`);
+  }
+  if (portfolio) {
+    const href = portfolio.startsWith("http") ? portfolio : "https://" + portfolio;
+    linkEntries.push(`<a href="${href}">Portfolio</a>`);
   }
 
   const linksBarHtml = linkEntries.join(" | ");
 
-  /* ── HTML OUTPUT ─────────────────────────────────────────────────────── */
+  /* ── HTML OUTPUT ── */
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -275,8 +236,6 @@ export const classicTemplate = (data = {}) => {
     }
 
     /* ── SECTION HEADER ── */
-    /* Matches the resume: "Professional Summary", "Education" etc.
-       displayed with small-caps and a full horizontal rule beneath */
     .section-header {
       font-size: 12px;
       font-weight: bold;
@@ -333,8 +292,8 @@ export const classicTemplate = (data = {}) => {
   <!-- TECHNICAL SKILLS -->
   ${skillsHtml ? `<div class="section-header">Technical Skills</div><div>${skillsHtml}</div>` : ""}
 
-  <!-- TECHNICAL PROJECTS -->
-  ${expHtml ? `<div class="section-header">Technical Projects</div>${expHtml}` : ""}
+  <!-- PROJECTS -->
+  ${expHtml ? `<div class="section-header">Projects</div>${expHtml}` : ""}
 
   <!-- ACHIEVEMENTS & PROBLEM SOLVING -->
   ${achievementsHtml ? `<div class="section-header">Achievements &amp; Problem Solving</div><div>${achievementsHtml}</div>` : ""}

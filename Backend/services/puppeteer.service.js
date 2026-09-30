@@ -1,7 +1,24 @@
 import puppeteer from "puppeteer";
+import fs from "fs";
 import { classicTemplate } from "../templates/classic.template.js";
 import { modernTemplate } from "../templates/modern.template.js";
 import { minimalTemplate } from "../templates/minimal.template.js";
+
+const getExecutablePath = () => {
+  const chromePaths = [
+    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+    "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+    "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
+    "/usr/bin/google-chrome",
+    "/usr/bin/chromium-browser",
+    "/usr/bin/chromium",
+  ];
+  for (const p of chromePaths) {
+    if (fs.existsSync(p)) return p;
+  }
+  return undefined;
+};
 
 const TEMPLATES = {
   classic: classicTemplate,
@@ -19,7 +36,8 @@ export const generatePDF = async (resumeData, template = "classic") => {
   const templateFn = TEMPLATES[template] || TEMPLATES.classic;
   const html = templateFn(resumeData);
 
-  const browser = await puppeteer.launch({
+  const execPath = getExecutablePath();
+  const launchOptions = {
     headless: "new",
     args: [
       "--no-sandbox",
@@ -27,23 +45,28 @@ export const generatePDF = async (resumeData, template = "classic") => {
       "--disable-dev-shm-usage",
       "--disable-gpu",
     ],
-  });
+  };
+  if (execPath) {
+    launchOptions.executablePath = execPath;
+  }
+
+  const browser = await puppeteer.launch(launchOptions);
 
   try {
     const page = await browser.newPage();
 
-    // Load HTML content — `networkidle0` waits for Google Fonts to load
-    await page.setContent(html, { waitUntil: "networkidle0", timeout: 30000 });
+    // Standard A4 pixel size at 96 DPI: 794 x 1123
+    await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 2 });
+
+    // Load HTML content — waits for DOM and fonts without hanging on networkidle0
+    await page.setContent(html, { waitUntil: ["domcontentloaded", "load"], timeout: 60000 });
+    await page.evaluateHandle("document.fonts.ready");
 
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
       preferCSSPageSize: true,
       pageRanges: "1",
-      margin:
-        template === "modern"
-          ? { top: "0in", right: "0in", bottom: "0in", left: "0in" }
-          : { top: "0.25in", right: "0.3in", bottom: "0.25in", left: "0.3in" },
     });
 
     return pdfBuffer;

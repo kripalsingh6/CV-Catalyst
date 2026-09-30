@@ -36,6 +36,7 @@ const allowedOrigins = [
   clientUrl,
 ].filter(Boolean);
 
+
 app.use(
   cors({
     origin: (origin, callback) => {

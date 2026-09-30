@@ -323,7 +323,13 @@ export function DashboardPage() {
     try {
       const response = await axios.post(
         `${API_BASE}/api/resume/${resumeId}/export-pdf?template=${tpl}`,
-        { template: tpl },
+        {
+          template: tpl,
+          rewrittenData: targetResume?.rewrittenData || {
+            name: targetResume?.title || "Kripal Singh Thakur",
+            rawText: targetResume?.rawText || "",
+          },
+        },
         { responseType: "blob", withCredentials: true }
       );
 
@@ -343,7 +349,17 @@ export function DashboardPage() {
       toast.success(`${tpl.toUpperCase()} PDF downloaded successfully!`, { id: toastId });
     } catch (err) {
       console.error("PDF download error:", err);
-      toast.error("Failed to download PDF", { id: toastId });
+      let errorMsg = "Failed to download PDF";
+      if (err.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const json = JSON.parse(text);
+          if (json.message) errorMsg = json.message;
+        } catch {}
+      } else if (err.response?.data?.message) {
+        errorMsg = err.response.data.message;
+      }
+      toast.error(errorMsg, { id: toastId });
     }
   };
 
@@ -935,7 +951,7 @@ export function DashboardPage() {
                       {/* Download PDF if rewritten */}
                       {resume.status === "rewritten" && (
                         <button
-                          onClick={(e) => handleExportPDF(resume._id, resume.title, e)}
+                          onClick={(e) => handleExportPDF(resume._id, resume.title, resume.template || createSelectedTemplate, e)}
                           title="Export PDF"
                           className="p-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 transition cursor-pointer"
                         >

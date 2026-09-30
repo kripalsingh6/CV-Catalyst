@@ -316,27 +316,48 @@ export const getResumeById = async (req, res) => {
 // REWRITE RESUME WITH AI & CALCULATE ATS SCORE
 export const rewriteResumeController = async (req, res) => {
   try {
-    const resume = await Resume.findOne({
-      _id: req.params.id,
-      userId: req.user._id,
-    });
+    let resume = null;
+    if (req.user?._id) {
+      resume = await Resume.findOne({
+        _id: req.params.id,
+        userId: req.user._id,
+      });
+    }
+    if (!resume) {
+      resume = await Resume.findById(req.params.id);
+    }
 
     if (!resume) {
       return res.status(404).json({ success: false, message: "Resume not found" });
+    }
+
+    const { template, rawText, jobDescription } = req.body || {};
+
+    if (rawText && rawText.trim().length > 10) {
+      resume.rawText = rawText.trim();
+    }
+
+    if (jobDescription && jobDescription.trim().length > 10) {
+      resume.jobDescription = jobDescription.trim();
+      try {
+        const { analyzeJobDescription } = await import("../services/gemini.service.js");
+        resume.jdAnalysis = await analyzeJobDescription(resume.jobDescription);
+      } catch (jdErr) {
+        console.warn("⚠️ Inline JD analysis fallback:", jdErr.message);
+      }
     }
 
     if (!resume.rawText) {
       return res.status(400).json({ success: false, message: "Resume text is empty" });
     }
 
-    const { template } = req.body || {};
     if (template && ["classic", "modern", "minimal"].includes(template)) {
       resume.template = template;
     }
 
     const jdAnalysis = resume.jdAnalysis || {};
 
-    // Call Gemini AI rewrite agent
+    // Call Gemini AI rewrite agent with candidate experience and JD keywords
     const rewrittenData = await rewriteResume(resume.rawText, jdAnalysis);
 
     // Calculate ATS score
@@ -355,9 +376,10 @@ export const rewriteResumeController = async (req, res) => {
       resume,
     });
   } catch (error) {
+    console.error("❌ Error in rewriteResumeController:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to rewrite resume",
+      message: "Failed to rewrite resume: " + error.message,
       error: error.message,
     });
   }
@@ -366,19 +388,45 @@ export const rewriteResumeController = async (req, res) => {
 // EXPORT RESUME AS PDF VIA PUPPETEER
 export const exportPDFController = async (req, res) => {
   try {
-    const { template } = req.body || {};
-    const selectedTemplate = template || req.query.template;
+    const { template, rewrittenData: clientData } = req.body || {};
+    const selectedTemplate = template || req.query.template || "classic";
     const resumeId = req.params.id;
 
-    const resume = await Resume.findOne({ _id: resumeId, userId: req.user._id });
-    if (!resume) {
+    let resume = null;
+    if (mongoose.Types.ObjectId.isValid(resumeId)) {
+      if (req.user?._id) {
+        resume = await Resume.findOne({ _id: resumeId, userId: req.user._id });
+      }
+      if (!resume) {
+        resume = await Resume.findById(resumeId);
+      }
+    }
+
+    if (!resume && !clientData) {
       return res.status(404).json({ success: false, message: "Resume not found" });
     }
 
-    const data = resume.rewrittenData || { name: req.user?.name || "Applicant Name", rawText: resume.rawText };
+    const dbRewritten = resume?.rewrittenData?.toObject
+      ? resume.rewrittenData.toObject()
+      : (resume?.rewrittenData || {});
+
+    const baseData =
+      clientData && Object.keys(clientData).length > 0 ? clientData : dbRewritten;
+
+    const data = {
+      ...baseData,
+      rawText: resume?.rawText || baseData.rawText || "",
+      achievements:
+        baseData.achievements && baseData.achievements.length > 0
+          ? baseData.achievements
+          : resume?.achievements || [],
+    };
 
     const { generatePDF } = await import("../services/puppeteer.service.js");
-    const pdfBuffer = await generatePDF(data, selectedTemplate || resume.template || "classic");
+    const pdfBuffer = await generatePDF(
+      data,
+      selectedTemplate || resume?.template || "classic"
+    );
 
     res.set({
       "Content-Type": "application/pdf",
@@ -388,10 +436,10 @@ export const exportPDFController = async (req, res) => {
 
     return res.end(pdfBuffer);
   } catch (error) {
-    console.error("❌ Export PDF error:", error.message);
+    console.error("❌ Export PDF error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to export PDF",
+      message: "Failed to export PDF: " + error.message,
       error: error.message,
     });
   }

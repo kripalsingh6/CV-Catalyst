@@ -1,1 +1,39 @@
 @import "tailwindcss";
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0.35in 0.4in;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  header, footer, nav, button, input, textarea, .pointer-events-none, [class*="blur-"] {
+    display: none !important;
+  }
+
+  /* In print mode, isolate the resume print area */
+  div:has(> #resume-print-area) {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  #resume-print-area {
+    display: block !important;
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
